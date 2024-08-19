@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <main>
+      <div class="container">
+        <div><button onclick="newHand()">New Hand</button></div>
+        <div>
+          <h3>dealer-hand</h3>
+          <div class="card-container" id="dealer-hand">
+            <div id="dealer-cards"></div>
+          </div>
+          <div class="score">
+            <h4>Dealer Score:</h4>
+            <div id="dealer_score"></div>
+          </div>
+        </div>
+
+        <div>
+          <h3>Your Hand</h3>
+          <div class="card-container" id="user-hand">
+            <div id="user-cards"></div>
+          </div>
+        </div>
+
+        <div id="player_interface">
+          <div class="score">
+            <h4>User Score:</h4>
+            <div id="user_score"></div>
+          </div>
+          <button onClick="hitUser()">Hit</button>
+          <button onClick="dealerShowdown()">Stay</button>
+        </div>
+        <div id="outcome_interface">hi</div>
+        <!--   <div>
+          <button onClick="wager()">Lock in wager</button>
+           
+        </div> -->
+      </div>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
