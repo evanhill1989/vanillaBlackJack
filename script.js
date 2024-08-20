@@ -15,13 +15,20 @@ const dealerScoreElement = document.getElementById("dealer_score");
 const outcomeInterface = document.getElementById("outcome_interface");
 const wagerElement = document.getElementById("wager_amount");
 const bankrollElement = document.getElementById("bankroll");
+const doubleDownBtn = document.getElementById("doubledown-btn");
+const hitBtn = document.getElementById("hit-btn");
+const stayBtn = document.getElementById("stay-btn");
 
 bankrollElement.innerHTML = bankroll;
-// handle multiple aces logic
+// handle multiple aces logic,
+//
 
 // double down
 // splitting
 // insurance bets
+// when wager locks in it should simultaneously deduct from "bankroll"
+
+// user bust should immediately end the hand and settle game, why isn't it?
 
 function computeTotal(hand) {
   // here's where I need to handle the ace dichotomy
@@ -53,21 +60,21 @@ function computeTotal(hand) {
       if (handWithNoAcesTotal <= 9) {
         handScore = handWithNoAcesTotal + 12;
       } else {
-        handScore = handWithNoAces + 2;
+        handScore = handWithNoAcesTotal + 2;
       }
       break;
     case 3:
       if (handWithNoAcesTotal <= 8) {
         handScore = handWithNoAcesTotal + 13;
       } else {
-        handScore = handWithNoAces + 3;
+        handScore = handWithNoAcesTotal + 3;
       }
       break;
     case 4:
       if (handWithNoAcesTotal <= 7) {
         handScore = handWithNoAcesTotal + 14;
       } else {
-        handScore = handWithNoAces + 4;
+        handScore = handWithNoAcesTotal + 4;
       }
       break;
   }
@@ -125,6 +132,9 @@ function initialDeal() {
   // add setTimeout for dealing realism
   userScore = computeTotal(userCards);
   dealerScore = computeTotal(dealerCards);
+  if (userScore >= 9 && userScore <= 11) {
+    doubleDownBtn.disabled = false;
+  }
 
   updateScoreElements();
 
@@ -171,8 +181,17 @@ function flipDealerCardUp() {
   console.log(`The dealer exposes the ${dealerCards[0]}`);
 }
 
+// When the player's turn comes, they place a bet equal to the original bet, and the dealer gives the player just one card, which is placed face down and is not turned up until the bets are settled at the end of the hand.
 function doubleDown() {
-  wagerAmount++;
+  stayBtn.disabled = true;
+  hitBtn.disabled = true;
+  doubleDownBtn.disabled = true;
+  wagerAmount = wagerAmount + wagerAmount;
+  wagerElement.innerHTML = wagerAmount;
+  userCards.push(currentlyBeingDealtCard("user"));
+  userScore = computeTotal(userCards);
+  updateScoreElements();
+  dealerShowdown();
 }
 
 function hitUser() {
@@ -181,6 +200,9 @@ function hitUser() {
   userScore = computeTotal(userCards);
 
   updateScoreElements();
+  if (userScore > 21) {
+    settleGame("lose");
+  }
   // compareTotals();
 }
 
@@ -224,6 +246,8 @@ function settleGame(outcome, blackjackMultiplier = 1) {
     handleOutcomeInterface(outcome);
   }
   bankrollElement.innerHTML = bankroll;
+  console.log(bankroll);
+  // disable buttons here, then re-enable on newHand();
 }
 
 function resetGame() {
@@ -231,7 +255,7 @@ function resetGame() {
   userCards.splice(0, userCards.length);
   userScore = 0;
   dealerScore = 0;
-  wager = 0;
+  wagerAmount = 100; // will be more dynamic later
   userHandElement.innerHTML = "";
   dealerHandElement.innerHTML = "";
   outcomeInterface.innerHTML = "";

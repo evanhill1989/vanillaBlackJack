@@ -34,9 +34,11 @@
               <h4>User Score:</h4>
               <div id="user_score"></div>
             </div>
-            <button onClick="hitUser()">Hit</button>
-            <button onClick="dealerShowdown()">Stay</button>
-            <button onClick="doubleDown()">Double Down</button>
+            <button id="hit-btn" onClick="hitUser()">Hit</button>
+            <button id="stay-btn" onClick="dealerShowdown()">Stay</button>
+            <button id="doubledown-btn" onClick="doubleDown()" disabled>
+              Double Down
+            </button>
           </div>
           <div>
             <div class="wager">
