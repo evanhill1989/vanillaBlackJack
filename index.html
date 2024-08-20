@@ -29,14 +29,26 @@
         </div>
 
         <div id="player_interface">
-          <div class="score">
-            <h4>User Score:</h4>
-            <div id="user_score"></div>
+          <div>
+            <div class="score">
+              <h4>User Score:</h4>
+              <div id="user_score"></div>
+            </div>
+            <button onClick="hitUser()">Hit</button>
+            <button onClick="dealerShowdown()">Stay</button>
+            <button onClick="doubleDown()">Double Down</button>
           </div>
-          <button onClick="hitUser()">Hit</button>
-          <button onClick="dealerShowdown()">Stay</button>
+          <div>
+            <div class="wager">
+              <h4 id="wager_amount">Wager:</h4>
+              <input type="text" />
+              <div></div>
+            </div>
+            <button onClick="wager()">Lock in wager</button>
+          </div>
         </div>
         <div id="outcome_interface">hi</div>
+        <div>Bankroll: $<span id="bankroll"></span></div>
         <!--   <div>
           <button onClick="wager()">Lock in wager</button>
            
