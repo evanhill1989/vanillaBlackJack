@@ -83,8 +83,8 @@ const cardHands = {
     { rank: "J", value: 10, suitEmoji: "♤", suit: "spades" },
   ],
   userCards: [
-    { rank: "2", value: 2, suitEmoji: "♡", suit: "hearts" },
-    { rank: "2", value: 2, suitEmoji: "♢", suit: "diamonds" },
+    { rank: "5", value: 5, suitEmoji: "♡", suit: "hearts" },
+    { rank: "5", value: 5, suitEmoji: "♢", suit: "diamonds" },
   ],
 };
 
@@ -111,6 +111,8 @@ function initialDeal() {
   // console.log("dealerCards in initialDeal", dealerCards);
 
   // add setTimeout for dealing realism
+  updateScore();
+  updateScoreElements();
 
   if (score.user >= 9 && score.user <= 11) {
     doubleDownBtn.disabled = false;
@@ -122,8 +124,7 @@ function initialDeal() {
   if (firstCard === secondCard) {
     splitBtn.disabled = false;
   }
-  updateScore();
-  updateScoreElements();
+
   userCards.forEach((card) => addCardToHandElement(card, "user"));
   dealerCards.forEach((card) => addCardToHandElement(card, "dealer"));
 
@@ -145,25 +146,115 @@ initialDeal();
 // the nice thing about blackjack is there are so many edge cases, but they aren't bland old type issues
 // handle split -- splitting 2 aces might be a one - off
 // handle flipping dealer card at showdown
+function updateScore() {
+  // here's where I need to handle the ace dichotomy
+  // doing a lot of identical things twice here but need to to stay sane for now, only handle so much abstraction at once lol
+
+  let numbDealerAces = dealerCards.reduce((aceCount, card) => {
+    return card.rank === "A" ? aceCount + 1 : aceCount;
+  }, 0);
+  let numbUserAces = userCards.reduce((aceCount, card) => {
+    return card.rank === "A" ? aceCount + 1 : aceCount;
+  }, 0);
+  let dealerNonAces = dealerCards.filter((card) => card.type !== "A");
+  let userNonAces = userCards.filter((card) => card.type !== "A");
+  let dealerNonAcesTotal = dealerNonAces.reduce(
+    (sum, card) => sum + card.value,
+    0
+  );
+  let userNonAcesTotal = userNonAces.reduce((sum, card) => sum + card.value, 0);
+
+  // Logic here is a little simpler than i expected because you're never going to have more than one ace > 11
+  // Which means either all the aces will all be worth 1 or one will be 11 and the rest must be 1s
+  //
+  switch (numbDealerAces) {
+    case 0:
+      score.dealer = dealerNonAcesTotal;
+      break;
+    case 1:
+      if (dealerNonAcesTotal <= 10) {
+        score.dealer = dealerNonAcesTotal + 11;
+      } else {
+        score.dealer = dealerNonAcesTotal + 1;
+      }
+      break;
+    case 2: // 10 1 11
+      if (dealerNonAcesTotal <= 9) {
+        score.dealer = dealerNonAcesTotal + 12;
+      } else {
+        score.dealer = dealerNonAcesTotal + 2;
+      }
+      break;
+    case 3:
+      if (dealerNonAcesTotal <= 8) {
+        score.dealer = dealerNonAcesTotal + 13;
+      } else {
+        score.dealer = dealerNonAcesTotal + 3;
+      }
+      break;
+    case 4:
+      if (dealerNonAcesTotal <= 7) {
+        score.dealer = dealerNonAcesTotal + 14;
+      } else {
+        score.dealer = dealerNonAcesTotal + 4;
+      }
+      break;
+  }
+
+  switch (numbUserAces) {
+    case 0:
+      score.user = userNonAcesTotal;
+      break;
+    case 1:
+      if (userNonAcesTotal <= 10) {
+        score.user = userNonAcesTotal + 11;
+      } else {
+        score.user = userNonAcesTotal + 1;
+      }
+      break;
+    case 2: // 10 1 11
+      if (userNonAcesTotal <= 9) {
+        score.user = userNonAcesTotal + 12;
+      } else {
+        score.user = userNonAcesTotal + 2;
+      }
+      break;
+    case 3:
+      if (userNonAcesTotal <= 8) {
+        score.user = userNonAcesTotal + 13;
+      } else {
+        score.user = userNonAcesTotal + 3;
+      }
+      break;
+    case 4:
+      if (userNonAcesTotal <= 7) {
+        score.user = userNonAcesTotal + 14;
+      } else {
+        score.user = userNonAcesTotal + 4;
+      }
+      break;
+  }
+
+  console.log(score);
+}
+// function updateScore() {
+//   const computeDealerScore = dealerCards.reduce(
+//     (sum, card) => sum + card.value,
+//     0
+//   );
+//   console.log("userCards inside updateScore:", userCards);
+//   const computeUserScore = userCards.reduce((sum, card) => sum + card.value, 0);
+
+//   score.user = computeUserScore;
+//   score.dealer = computeDealerScore;
+//   console.log(score.user, score.dealer, "inside updateScore()");
+// }
 
 function updateScoreElements() {
   dealerScoreElement.innerHTML = "";
   userScoreElement.innerHTML = "";
   dealerScoreElement.innerHTML = score.dealer;
   userScoreElement.innerHTML = score.user;
-}
-
-function updateScore() {
-  const computeDealerScore = dealerCards.reduce(
-    (sum, card) => sum + card.value,
-    0
-  );
-  console.log("userCards inside updateScore:", userCards);
-  const computeUserScore = userCards.reduce((sum, card) => sum + card.value, 0);
-
-  score.user = computeUserScore;
-  score.dealer = computeDealerScore;
-  console.log(score.user, score.dealer, "inside updateScore()");
 }
 
 function hitUser() {
@@ -233,10 +324,6 @@ function addCardToHandElement(card, player) {
   }
 }
 
-function handleOutcomeInterface(outcome) {
-  outcomeInterface.innerHTML = `You ${outcome}`;
-}
-
 // When the player's turn comes, they place a bet equal to the original bet, and the dealer gives the player just one card, which is placed face down and is not turned up until the bets are settled at the end of the hand.
 function doubleDown() {
   stayBtn.disabled = true;
@@ -245,62 +332,63 @@ function doubleDown() {
   wagerAmount = wagerAmount + wagerAmount;
   wagerElement.innerHTML = wagerAmount;
   userCards.push(currentlyBeingDealtCard("user"));
-  userScore = computeTotal(userCards);
+
+  updateScore();
   updateScoreElements();
   dealerShowdown();
 }
 
-function computeTotal(hand) {
-  // here's where I need to handle the ace dichotomy
-  let handScore = 0;
-  let numberOfAces = hand.reduce((aceCount, card) => {
-    return card.rank === "A" ? aceCount + 1 : aceCount;
-  }, 0);
-  let handWithNoAces = hand.filter((card) => card.type !== "A");
-  let handWithNoAcesTotal = handWithNoAces.reduce(
-    (sum, card) => sum + card.value,
-    0
-  );
+// function computeTotal(hand) {
+//   // here's where I need to handle the ace dichotomy
+//   let handScore = 0;
+//   let numberOfAces = hand.reduce((aceCount, card) => {
+//     return card.rank === "A" ? aceCount + 1 : aceCount;
+//   }, 0);
+//   let handWithNoAces = hand.filter((card) => card.type !== "A");
+//   let handWithNoAcesTotal = handWithNoAces.reduce(
+//     (sum, card) => sum + card.value,
+//     0
+//   );
 
-  // Logic here is a little simpler than i expected because you're never going to have more than one ace > 11
-  // Which means either all the aces will all be worth 1 or one will be 11 and the rest must be 1s
-  //
-  switch (numberOfAces) {
-    case 0:
-      handScore = handWithNoAcesTotal;
-      break;
-    case 1:
-      if (handWithNoAcesTotal <= 10) {
-        handScore = handWithNoAcesTotal + 11;
-      } else {
-        handScore = handWithNoAcesTotal + 1;
-      }
-      break;
-    case 2: // 10 1 11
-      if (handWithNoAcesTotal <= 9) {
-        handScore = handWithNoAcesTotal + 12;
-      } else {
-        handScore = handWithNoAcesTotal + 2;
-      }
-      break;
-    case 3:
-      if (handWithNoAcesTotal <= 8) {
-        handScore = handWithNoAcesTotal + 13;
-      } else {
-        handScore = handWithNoAcesTotal + 3;
-      }
-      break;
-    case 4:
-      if (handWithNoAcesTotal <= 7) {
-        handScore = handWithNoAcesTotal + 14;
-      } else {
-        handScore = handWithNoAcesTotal + 4;
-      }
-      break;
-  }
-  console.log("number of aces:", numberOfAces);
-  return handScore;
-}
+// Logic here is a little simpler than i expected because you're never going to have more than one ace > 11
+// Which means either all the aces will all be worth 1 or one will be 11 and the rest must be 1s
+//
+//   switch (numberOfAces) {
+//     case 0:
+//       handScore = handWithNoAcesTotal;
+//       break;
+//     case 1:
+//       if (handWithNoAcesTotal <= 10) {
+//         handScore = handWithNoAcesTotal + 11;
+//       } else {
+//         handScore = handWithNoAcesTotal + 1;
+//       }
+//       break;
+//     case 2: // 10 1 11
+//       if (handWithNoAcesTotal <= 9) {
+//         handScore = handWithNoAcesTotal + 12;
+//       } else {
+//         handScore = handWithNoAcesTotal + 2;
+//       }
+//       break;
+//     case 3:
+//       if (handWithNoAcesTotal <= 8) {
+//         handScore = handWithNoAcesTotal + 13;
+//       } else {
+//         handScore = handWithNoAcesTotal + 3;
+//       }
+//       break;
+//     case 4:
+//       if (handWithNoAcesTotal <= 7) {
+//         handScore = handWithNoAcesTotal + 14;
+//       } else {
+//         handScore = handWithNoAcesTotal + 4;
+//       }
+//       break;
+//   }
+//   console.log("number of aces:", numberOfAces);
+
+// }
 
 function compareTotals() {
   if (userScore > 21) {
@@ -341,7 +429,7 @@ function dealerShowdown() {
     settleGame("win");
   } else if (score.dealer < 17) {
     dealerCards.push(currentlyBeingDealtCard("dealer"));
-    score.dealer = computeTotal(dealerCards);
+    updateScore();
     updateScoreElements();
 
     dealerShowdown();
@@ -354,6 +442,10 @@ function dealerShowdown() {
       settleGame("win");
     }
   }
+}
+
+function handleOutcomeInterface(outcome) {
+  outcomeInterface.innerHTML = `You ${outcome}`;
 }
 
 function resetGame() {
