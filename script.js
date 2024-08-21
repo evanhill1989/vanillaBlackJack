@@ -1,12 +1,104 @@
-let dealerCards = [];
-let userCards = [];
 let deck = [];
+const deckStart = [
+  { rank: "2", value: 2, suitEmoji: "♡", suit: "hearts" },
+  { rank: "3", value: 3, suitEmoji: "♡", suit: "hearts" },
+  { rank: "4", value: 4, suitEmoji: "♡", suit: "hearts" },
+  { rank: "5", value: 5, suitEmoji: "♡", suit: "hearts" },
+  { rank: "6", value: 6, suitEmoji: "♡", suit: "hearts" },
+  { rank: "7", value: 7, suitEmoji: "♡", suit: "hearts" },
+  { rank: "8", value: 8, suitEmoji: "♡", suit: "hearts" },
+  { rank: "9", value: 9, suitEmoji: "♡", suit: "hearts" },
+  { rank: "10", value: 10, suitEmoji: "♡", suit: "hearts" },
+  { rank: "J", value: 10, suitEmoji: "♡", suit: "hearts" },
+  { rank: "Q", value: 10, suitEmoji: "♡", suit: "hearts" },
+  { rank: "K", value: 10, suitEmoji: "♡", suit: "hearts" },
+  { rank: "A", value: 0, suitEmoji: "♡", suit: "hearts" },
+
+  { rank: "2", value: 2, suitEmoji: "♢", suit: "diamonds" },
+  { rank: "3", value: 3, suitEmoji: "♢", suit: "diamonds" },
+  { rank: "4", value: 4, suitEmoji: "♢", suit: "diamonds" },
+  { rank: "5", value: 5, suitEmoji: "♢", suit: "diamonds" },
+  { rank: "6", value: 6, suitEmoji: "♢", suit: "diamonds" },
+  { rank: "7", value: 7, suitEmoji: "♢", suit: "diamonds" },
+  { rank: "8", value: 8, suitEmoji: "♢", suit: "diamonds" },
+  { rank: "9", value: 9, suitEmoji: "♢", suit: "diamonds" },
+  { rank: "10", value: 10, suitEmoji: "♢", suit: "diamonds" },
+  { rank: "J", value: 10, suitEmoji: "♢", suit: "diamonds" },
+  { rank: "Q", value: 10, suitEmoji: "♢", suit: "diamonds" },
+  { rank: "K", value: 10, suitEmoji: "♢", suit: "diamonds" },
+  { rank: "A", value: 0, suitEmoji: "♢", suit: "diamonds" },
+
+  { rank: "2", value: 2, suitEmoji: "♧", suit: "clubs" },
+  { rank: "3", value: 3, suitEmoji: "♧", suit: "clubs" },
+  { rank: "4", value: 4, suitEmoji: "♧", suit: "clubs" },
+  { rank: "5", value: 5, suitEmoji: "♧", suit: "clubs" },
+  { rank: "6", value: 6, suitEmoji: "♧", suit: "clubs" },
+  { rank: "7", value: 7, suitEmoji: "♧", suit: "clubs" },
+  { rank: "8", value: 8, suitEmoji: "♧", suit: "clubs" },
+  { rank: "9", value: 9, suitEmoji: "♧", suit: "clubs" },
+  { rank: "10", value: 10, suitEmoji: "♧", suit: "clubs" },
+  { rank: "J", value: 10, suitEmoji: "♧", suit: "clubs" },
+  { rank: "Q", value: 10, suitEmoji: "♧", suit: "clubs" },
+  { rank: "K", value: 10, suitEmoji: "♧", suit: "clubs" },
+  { rank: "A", value: 0, suitEmoji: "♧", suit: "clubs" },
+
+  { rank: "2", value: 2, suitEmoji: "♤", suit: "spades" },
+  { rank: "3", value: 3, suitEmoji: "♤", suit: "spades" },
+  { rank: "4", value: 4, suitEmoji: "♤", suit: "spades" },
+  { rank: "5", value: 5, suitEmoji: "♤", suit: "spades" },
+  { rank: "6", value: 6, suitEmoji: "♤", suit: "spades" },
+  { rank: "7", value: 7, suitEmoji: "♤", suit: "spades" },
+  { rank: "8", value: 8, suitEmoji: "♤", suit: "spades" },
+  { rank: "9", value: 9, suitEmoji: "♤", suit: "spades" },
+  { rank: "10", value: 10, suitEmoji: "♤", suit: "spades" },
+  { rank: "J", value: 10, suitEmoji: "♤", suit: "spades" },
+  { rank: "Q", value: 10, suitEmoji: "♤", suit: "spades" },
+  { rank: "K", value: 10, suitEmoji: "♤", suit: "spades" },
+  { rank: "A", value: 0, suitEmoji: "♤", suit: "spades" },
+];
+
+deck = deckStart;
+
+/*
+ Should cardHands be an array or object?
+
+ {
+    dealerCards: [
+      { rank: "3", value: 3, suitEmoji: "♡", suit: "hearts" },
+       { rank: "J", value: 10, suitEmoji: "♤", suit: "spades" }
+    ],
+    userCards: [
+      { rank: "2", value: 2, suitEmoji: "♡", suit: "hearts" },
+       { rank: "2", value: 2, suitEmoji: "♢", suit: "diamonds" }
+    ]
+ }
+*/
+
+const cardHands = {
+  dealerCards: [
+    { rank: "3", value: 3, suitEmoji: "♡", suit: "hearts" },
+    { rank: "J", value: 10, suitEmoji: "♤", suit: "spades" },
+  ],
+  userCards: [
+    { rank: "2", value: 2, suitEmoji: "♡", suit: "hearts" },
+    { rank: "2", value: 2, suitEmoji: "♢", suit: "diamonds" },
+  ],
+};
+
+const dealerScore = cardHands.dealerCards.reduce(
+  (sum, card) => sum + card.value,
+  0
+);
+
+const userScore = cardHands.userCards.reduce(
+  (sum, card) => sum + card.value,
+  0
+);
+
+console.log("placebo userScore:", userScore, "placebo userScore:", dealerScore);
 
 let bankroll = 1000;
 let wagerAmount = 100;
-
-let userScore = 0;
-let dealerScore = 0;
 
 const userHandElement = document.getElementById("user-hand");
 const dealerHandElement = document.getElementById("dealer-hand");
@@ -21,12 +113,16 @@ const stayBtn = document.getElementById("stay-btn");
 
 bankrollElement.innerHTML = bankroll;
 
-// handle multiple aces logic
+// cards needs to have one simple source of truth/state
+// the nice thing about blackjack is there are so many edge cases, but they aren't bland old type issues
+// handle split -- splitting 2 aces might be a one - off
+// handle flipping dealer card at showdown
 
 function updateScoreElements() {
   dealerScoreElement.innerHTML = "";
   userScoreElement.innerHTML = "";
   dealerScoreElement.innerHTML = dealerScore;
+  cardHands.dealerCards[0];
   userScoreElement.innerHTML = userScore;
 }
 
@@ -65,33 +161,46 @@ function addCardToHand(card, player) {
 }
 
 function currentlyBeingDealtCard(player) {
-  const currentDeckLength = deck.length;
   const randomCardPositionInDeck = Math.ceil(Math.random() * deck.length) - 1;
   const actualCard = deck[randomCardPositionInDeck];
-  deck.splice(randomCardPositionInDeck, 1); // remove the currently being dealt card from the deck
+  // remove the currently being dealt card from the deck
 
-  if (player === "dealer") {
+  if (player === "user" && userCards.length === 0) {
+    addCardToHand(deck[13], player);
+    deck.splice(deck[13], 1);
+    return first2;
+  } else if (player === "user" && userCards.length === 1) {
+    addCardToHand(deck[0], player);
+    deck.splice(deck[0], 1);
+    return second2;
+  } else {
     addCardToHand(actualCard, player);
-  }
-  if (player === "user") {
-    addCardToHand(actualCard, player);
+    deck.splice(randomCardPositionInDeck, 1);
   }
 
-  return actualCard; // currentlyBeingDealtCard to be dealt to Dealer or User hand
+  // return actualCard; // currentlyBeingDealtCard to be dealt to Dealer or User hand
 }
 
 function initialDeal() {
-  userCards.push(currentlyBeingDealtCard("user"));
-  userCards.push(currentlyBeingDealtCard("user")); // add setTimeout for dealing realism, removed initially     for       simplicity and sanity
+  cardHands.userCards.push(currentlyBeingDealtCard("user"));
+  cardHands.userCards.push(currentlyBeingDealtCard("user")); // add setTimeout for dealing realism, removed initially     for       simplicity and sanity
 
-  dealerCards.push(currentlyBeingDealtCard("dealer"));
-  dealerCards.push(currentlyBeingDealtCard("dealer"));
+  // dealerCards.push(currentlyBeingDealtCard("dealer"));
+  // dealerCards.push(currentlyBeingDealtCard("dealer"));
+
+  console.log(userCards);
+  const firstCard = userCards[0].value;
+  const secondCard = userCards[1].value;
 
   // add setTimeout for dealing realism
   userScore = computeTotal(userCards);
   dealerScore = computeTotal(dealerCards);
   if (userScore >= 9 && userScore <= 11) {
     doubleDownBtn.disabled = false;
+  }
+
+  if (firstCard === secondCard) {
+    split.disabled = false;
   }
 
   updateScoreElements();
@@ -242,8 +351,11 @@ function dealerShowdown() {
 }
 
 function resetGame() {
-  dealerCards.splice(0, dealerCards.length); // reset game
-  userCards.splice(0, userCards.length);
+  // dealerCards.splice(0, dealerCards.length); // reset game
+  // userCards.splice(0, userCards.length);
+  dealerCards = [];
+  userCards = [];
+
   userScore = 0;
   dealerScore = 0;
   wager = 0;
@@ -253,70 +365,12 @@ function resetGame() {
   stayBtn.disabled = false;
   hitBtn.disabled = false;
 
-  const deckStart = [
-    { rank: "2", value: 2, suitEmoji: "♡", suit: "hearts" },
-    { rank: "3", value: 3, suitEmoji: "♡", suit: "hearts" },
-    { rank: "4", value: 4, suitEmoji: "♡", suit: "hearts" },
-    { rank: "5", value: 5, suitEmoji: "♡", suit: "hearts" },
-    { rank: "6", value: 6, suitEmoji: "♡", suit: "hearts" },
-    { rank: "7", value: 7, suitEmoji: "♡", suit: "hearts" },
-    { rank: "8", value: 8, suitEmoji: "♡", suit: "hearts" },
-    { rank: "9", value: 9, suitEmoji: "♡", suit: "hearts" },
-    { rank: "10", value: 10, suitEmoji: "♡", suit: "hearts" },
-    { rank: "J", value: 10, suitEmoji: "♡", suit: "hearts" },
-    { rank: "Q", value: 10, suitEmoji: "♡", suit: "hearts" },
-    { rank: "K", value: 10, suitEmoji: "♡", suit: "hearts" },
-    { rank: "A", value: 0, suitEmoji: "♡", suit: "hearts" },
-
-    { rank: "2", value: 2, suitEmoji: "♢", suit: "diamonds" },
-    { rank: "3", value: 3, suitEmoji: "♢", suit: "diamonds" },
-    { rank: "4", value: 4, suitEmoji: "♢", suit: "diamonds" },
-    { rank: "5", value: 5, suitEmoji: "♢", suit: "diamonds" },
-    { rank: "6", value: 6, suitEmoji: "♢", suit: "diamonds" },
-    { rank: "7", value: 7, suitEmoji: "♢", suit: "diamonds" },
-    { rank: "8", value: 8, suitEmoji: "♢", suit: "diamonds" },
-    { rank: "9", value: 9, suitEmoji: "♢", suit: "diamonds" },
-    { rank: "10", value: 10, suitEmoji: "♢", suit: "diamonds" },
-    { rank: "J", value: 10, suitEmoji: "♢", suit: "diamonds" },
-    { rank: "Q", value: 10, suitEmoji: "♢", suit: "diamonds" },
-    { rank: "K", value: 10, suitEmoji: "♢", suit: "diamonds" },
-    { rank: "A", value: 0, suitEmoji: "♢", suit: "diamonds" },
-
-    { rank: "2", value: 2, suitEmoji: "♧", suit: "clubs" },
-    { rank: "3", value: 3, suitEmoji: "♧", suit: "clubs" },
-    { rank: "4", value: 4, suitEmoji: "♧", suit: "clubs" },
-    { rank: "5", value: 5, suitEmoji: "♧", suit: "clubs" },
-    { rank: "6", value: 6, suitEmoji: "♧", suit: "clubs" },
-    { rank: "7", value: 7, suitEmoji: "♧", suit: "clubs" },
-    { rank: "8", value: 8, suitEmoji: "♧", suit: "clubs" },
-    { rank: "9", value: 9, suitEmoji: "♧", suit: "clubs" },
-    { rank: "10", value: 10, suitEmoji: "♧", suit: "clubs" },
-    { rank: "J", value: 10, suitEmoji: "♧", suit: "clubs" },
-    { rank: "Q", value: 10, suitEmoji: "♧", suit: "clubs" },
-    { rank: "K", value: 10, suitEmoji: "♧", suit: "clubs" },
-    { rank: "A", value: 0, suitEmoji: "♧", suit: "clubs" },
-
-    { rank: "2", value: 2, suitEmoji: "♤", suit: "spades" },
-    { rank: "3", value: 3, suitEmoji: "♤", suit: "spades" },
-    { rank: "4", value: 4, suitEmoji: "♤", suit: "spades" },
-    { rank: "5", value: 5, suitEmoji: "♤", suit: "spades" },
-    { rank: "6", value: 6, suitEmoji: "♤", suit: "spades" },
-    { rank: "7", value: 7, suitEmoji: "♤", suit: "spades" },
-    { rank: "8", value: 8, suitEmoji: "♤", suit: "spades" },
-    { rank: "9", value: 9, suitEmoji: "♤", suit: "spades" },
-    { rank: "10", value: 10, suitEmoji: "♤", suit: "spades" },
-    { rank: "J", value: 10, suitEmoji: "♤", suit: "spades" },
-    { rank: "Q", value: 10, suitEmoji: "♤", suit: "spades" },
-    { rank: "K", value: 10, suitEmoji: "♤", suit: "spades" },
-    { rank: "A", value: 0, suitEmoji: "♤", suit: "spades" },
-  ];
-
   deck = deckStart;
 }
 
 function newHand() {
   resetGame();
 
-  initialDeal();
+  // initialDeal();
   compareTotals();
 }
