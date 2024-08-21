@@ -59,44 +59,6 @@ const deckStart = [
 
 deck = deckStart;
 
-/*
- Should cardHands be an array or object?
-
- {
-    dealerCards: [
-      { rank: "3", value: 3, suitEmoji: "♡", suit: "hearts" },
-       { rank: "J", value: 10, suitEmoji: "♤", suit: "spades" }
-    ],
-    userCards: [
-      { rank: "2", value: 2, suitEmoji: "♡", suit: "hearts" },
-       { rank: "2", value: 2, suitEmoji: "♢", suit: "diamonds" }
-    ]
- }
-*/
-
-const cardHands = {
-  dealerCards: [
-    { rank: "3", value: 3, suitEmoji: "♡", suit: "hearts" },
-    { rank: "J", value: 10, suitEmoji: "♤", suit: "spades" },
-  ],
-  userCards: [
-    { rank: "2", value: 2, suitEmoji: "♡", suit: "hearts" },
-    { rank: "2", value: 2, suitEmoji: "♢", suit: "diamonds" },
-  ],
-};
-
-const dealerScore = cardHands.dealerCards.reduce(
-  (sum, card) => sum + card.value,
-  0
-);
-
-const userScore = cardHands.userCards.reduce(
-  (sum, card) => sum + card.value,
-  0
-);
-
-console.log("placebo userScore:", userScore, "placebo userScore:", dealerScore);
-
 let bankroll = 1000;
 let wagerAmount = 100;
 
@@ -110,8 +72,74 @@ const bankrollElement = document.getElementById("bankroll");
 const doubleDownBtn = document.getElementById("doubledown-btn");
 const hitBtn = document.getElementById("hit-btn");
 const stayBtn = document.getElementById("stay-btn");
+const splitBtn = document.getElementById("split-btn");
 
 bankrollElement.innerHTML = bankroll;
+
+// it would almost be nice just to have methods directly attached to my hands objects...
+const cardHands = {
+  dealerCards: [
+    { rank: "3", value: 3, suitEmoji: "♡", suit: "hearts" },
+    { rank: "J", value: 10, suitEmoji: "♤", suit: "spades" },
+  ],
+  userCards: [
+    { rank: "2", value: 2, suitEmoji: "♡", suit: "hearts" },
+    { rank: "2", value: 2, suitEmoji: "♢", suit: "diamonds" },
+  ],
+};
+
+const userCards = cardHands.userCards;
+const dealerCards = cardHands.dealerCards;
+const userCard1 = cardHands.userCards[0];
+
+const score = {
+  dealer: 0,
+  user: 0,
+};
+// const dealerScore = dealerCards.reduce((sum, card) => sum + card.value, 0);
+
+// const userScore = userCards.reduce((sum, card) => sum + card.value, 0);
+
+function initialDeal() {
+  // cardHands.userCards.push(currentlyBeingDealtCard("user"));
+  // cardHands.userCards.push(currentlyBeingDealtCard("user")); // add setTimeout for dealing realism, removed initially     for       simplicity and sanity
+
+  // dealerCards.push(currentlyBeingDealtCard("dealer"));
+  // dealerCards.push(currentlyBeingDealtCard("dealer"));
+
+  // console.log("userCards in initialDeal", userCards);
+  // console.log("dealerCards in initialDeal", dealerCards);
+
+  // add setTimeout for dealing realism
+
+  if (score.user >= 9 && score.user <= 11) {
+    doubleDownBtn.disabled = false;
+  }
+
+  //pair SPLIT hand  logic --- type of thing that should be a function? Performance issues? *****
+  const firstCard = userCards[0].value;
+  const secondCard = userCards[1].value;
+  if (firstCard === secondCard) {
+    splitBtn.disabled = false;
+  }
+  updateScore();
+  updateScoreElements();
+  userCards.forEach((card) => addCardToHandElement(card, "user"));
+  dealerCards.forEach((card) => addCardToHandElement(card, "dealer"));
+
+  if (score.user === 21 && score.dealer !== 21) {
+    console.log("Congrats on BlackJack!");
+    settleGame("win", 1.5);
+  }
+  if (score.user === 21 && score.dealer === 21) {
+    settleGame("tie");
+  }
+  if (score.user !== 21 && score.dealer === 21) {
+    settleGame("lose");
+  }
+}
+
+initialDeal();
 
 // cards needs to have one simple source of truth/state
 // the nice thing about blackjack is there are so many edge cases, but they aren't bland old type issues
@@ -121,12 +149,57 @@ bankrollElement.innerHTML = bankroll;
 function updateScoreElements() {
   dealerScoreElement.innerHTML = "";
   userScoreElement.innerHTML = "";
-  dealerScoreElement.innerHTML = dealerScore;
-  cardHands.dealerCards[0];
-  userScoreElement.innerHTML = userScore;
+  dealerScoreElement.innerHTML = score.dealer;
+  userScoreElement.innerHTML = score.user;
 }
 
-function addCardToHand(card, player) {
+function updateScore() {
+  const computeDealerScore = dealerCards.reduce(
+    (sum, card) => sum + card.value,
+    0
+  );
+  console.log("userCards inside updateScore:", userCards);
+  const computeUserScore = userCards.reduce((sum, card) => sum + card.value, 0);
+
+  score.user = computeUserScore;
+  score.dealer = computeDealerScore;
+  console.log(score.user, score.dealer, "inside updateScore()");
+}
+
+function hitUser() {
+  userCards.push(currentlyBeingDealtCard("user"));
+  updateScore();
+  console.log(score, "inside hitUser");
+  updateScoreElements();
+  if (score.user > 21) {
+    settleGame("lose");
+  }
+  // compareTotals();
+}
+
+function currentlyBeingDealtCard(player) {
+  const randomCardPositionInDeck = Math.ceil(Math.random() * deck.length) - 1;
+  const actualCard = deck[randomCardPositionInDeck];
+  // remove the currently being dealt card from the deck
+
+  if (player === "user" && userCards.length === 0) {
+    addCardToHandElement(deck[13], player);
+    deck.splice(deck[13], 1);
+    return;
+  } else if (player === "user" && userCards.length === 1) {
+    addCardToHandElement(deck[0], player);
+    deck.splice(deck[0], 1);
+    return;
+  } else {
+    addCardToHandElement(actualCard, player);
+    deck.splice(randomCardPositionInDeck, 1);
+    return actualCard;
+  }
+
+  // return actualCard; // currentlyBeingDealtCard to be dealt to Dealer or User hand
+}
+
+function addCardToHandElement(card, player) {
   const cardElement = document.createElement("div");
   const suitElement = document.createElement("div");
   const rightRankElement = document.createElement("div");
@@ -160,77 +233,10 @@ function addCardToHand(card, player) {
   }
 }
 
-function currentlyBeingDealtCard(player) {
-  const randomCardPositionInDeck = Math.ceil(Math.random() * deck.length) - 1;
-  const actualCard = deck[randomCardPositionInDeck];
-  // remove the currently being dealt card from the deck
-
-  if (player === "user" && userCards.length === 0) {
-    addCardToHand(deck[13], player);
-    deck.splice(deck[13], 1);
-    return first2;
-  } else if (player === "user" && userCards.length === 1) {
-    addCardToHand(deck[0], player);
-    deck.splice(deck[0], 1);
-    return second2;
-  } else {
-    addCardToHand(actualCard, player);
-    deck.splice(randomCardPositionInDeck, 1);
-  }
-
-  // return actualCard; // currentlyBeingDealtCard to be dealt to Dealer or User hand
-}
-
-function initialDeal() {
-  cardHands.userCards.push(currentlyBeingDealtCard("user"));
-  cardHands.userCards.push(currentlyBeingDealtCard("user")); // add setTimeout for dealing realism, removed initially     for       simplicity and sanity
-
-  // dealerCards.push(currentlyBeingDealtCard("dealer"));
-  // dealerCards.push(currentlyBeingDealtCard("dealer"));
-
-  console.log(userCards);
-  const firstCard = userCards[0].value;
-  const secondCard = userCards[1].value;
-
-  // add setTimeout for dealing realism
-  userScore = computeTotal(userCards);
-  dealerScore = computeTotal(dealerCards);
-  if (userScore >= 9 && userScore <= 11) {
-    doubleDownBtn.disabled = false;
-  }
-
-  if (firstCard === secondCard) {
-    split.disabled = false;
-  }
-
-  updateScoreElements();
-
-  if (userScore === 21 && dealerScore !== 21) {
-    console.log("Congrats on BlackJack!");
-    settleGame("win", 1.5);
-  }
-  if (userScore === 21 && dealerScore === 21) {
-    settleGame("tie");
-  }
-  if (userScore !== 21 && dealerScore === 21) {
-    settleGame("lose");
-  }
-}
-
 function handleOutcomeInterface(outcome) {
   outcomeInterface.innerHTML = `You ${outcome}`;
 }
-function hitUser() {
-  userCards.push(currentlyBeingDealtCard("user"));
 
-  userScore = computeTotal(userCards);
-
-  updateScoreElements();
-  if (userScore > 21) {
-    settleGame("lose");
-  }
-  // compareTotals();
-}
 // When the player's turn comes, they place a bet equal to the original bet, and the dealer gives the player just one card, which is placed face down and is not turned up until the bets are settled at the end of the hand.
 function doubleDown() {
   stayBtn.disabled = true;
@@ -329,20 +335,20 @@ function dealerShowdown() {
   stayBtn.disabled = true;
   hitBtn.disabled = true;
   //   flipDealerCardUp();
-  if (dealerScore === 21 && userScore === 21) {
+  if (score.dealer === 21 && score.user === 21) {
     settleGame("tie");
-  } else if (dealerScore > 21) {
+  } else if (score.dealer > 21) {
     settleGame("win");
-  } else if (dealerScore < 17) {
+  } else if (score.dealer < 17) {
     dealerCards.push(currentlyBeingDealtCard("dealer"));
-    dealerScore = computeTotal(dealerCards);
+    score.dealer = computeTotal(dealerCards);
     updateScoreElements();
 
     dealerShowdown();
-  } else if (dealerScore > 16) {
-    if (dealerScore > userScore) {
+  } else if (score.dealer > 16) {
+    if (score.dealer > score.user) {
       settleGame("lose");
-    } else if (dealerScore === userScore) {
+    } else if (score.dealer === score.user) {
       settleGame("tie");
     } else {
       settleGame("win");
@@ -351,13 +357,9 @@ function dealerShowdown() {
 }
 
 function resetGame() {
-  // dealerCards.splice(0, dealerCards.length); // reset game
-  // userCards.splice(0, userCards.length);
-  dealerCards = [];
-  userCards = [];
+  dealerCards.splice(0, dealerCards.length); // reset game
+  userCards.splice(0, userCards.length);
 
-  userScore = 0;
-  dealerScore = 0;
   wager = 0;
   userHandElement.innerHTML = "";
   dealerHandElement.innerHTML = "";
@@ -371,6 +373,6 @@ function resetGame() {
 function newHand() {
   resetGame();
 
-  // initialDeal();
+  initialDeal();
   compareTotals();
 }
