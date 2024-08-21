@@ -8,8 +8,8 @@ let wagerAmount = 100;
 let userScore = 0;
 let dealerScore = 0;
 
-const userHandElement = document.getElementById("user-cards");
-const dealerHandElement = document.getElementById("dealer-cards");
+const userHandElement = document.getElementById("user-hand");
+const dealerHandElement = document.getElementById("dealer-hand");
 const userScoreElement = document.getElementById("user_score");
 const dealerScoreElement = document.getElementById("dealer_score");
 const outcomeInterface = document.getElementById("outcome_interface");
@@ -20,15 +20,120 @@ const hitBtn = document.getElementById("hit-btn");
 const stayBtn = document.getElementById("stay-btn");
 
 bankrollElement.innerHTML = bankroll;
-// handle multiple aces logic,
-//
 
-// double down
-// splitting
-// insurance bets
-// when wager locks in it should simultaneously deduct from "bankroll"
+// handle multiple aces logic
 
-// user bust should immediately end the hand and settle game, why isn't it?
+function updateScoreElements() {
+  dealerScoreElement.innerHTML = "";
+  userScoreElement.innerHTML = "";
+  dealerScoreElement.innerHTML = dealerScore;
+  userScoreElement.innerHTML = userScore;
+}
+
+function addCardToHand(card, player) {
+  const cardElement = document.createElement("div");
+  const suitElement = document.createElement("div");
+  const rightRankElement = document.createElement("div");
+  const leftRankElement = document.createElement("div");
+
+  rightRankElement.textContent = card.rank;
+  rightRankElement.classList.add("rank", "rankRightSide");
+  leftRankElement.textContent = card.rank;
+  leftRankElement.classList.add("rank", "rankLeftSide");
+  suitElement.textContent = card.suitEmoji;
+  suitElement.classList.add("suit");
+  cardElement.classList.add("card");
+
+  if (player === "dealer" && dealerCards.length === 0) {
+    cardElement.classList.add("card-back");
+    dealerHandElement.appendChild(cardElement);
+  } else if (player === "user") {
+    cardElement.classList.add("card-face");
+    cardElement.appendChild(leftRankElement);
+    cardElement.appendChild(suitElement);
+    cardElement.appendChild(rightRankElement);
+
+    userHandElement.appendChild(cardElement);
+  } else {
+    cardElement.classList.add("card-face");
+    cardElement.appendChild(leftRankElement);
+    cardElement.appendChild(suitElement);
+    cardElement.appendChild(rightRankElement);
+
+    dealerHandElement.appendChild(cardElement);
+  }
+}
+
+function currentlyBeingDealtCard(player) {
+  const currentDeckLength = deck.length;
+  const randomCardPositionInDeck = Math.ceil(Math.random() * deck.length) - 1;
+  const actualCard = deck[randomCardPositionInDeck];
+  deck.splice(randomCardPositionInDeck, 1); // remove the currently being dealt card from the deck
+
+  if (player === "dealer") {
+    addCardToHand(actualCard, player);
+  }
+  if (player === "user") {
+    addCardToHand(actualCard, player);
+  }
+
+  return actualCard; // currentlyBeingDealtCard to be dealt to Dealer or User hand
+}
+
+function initialDeal() {
+  userCards.push(currentlyBeingDealtCard("user"));
+  userCards.push(currentlyBeingDealtCard("user")); // add setTimeout for dealing realism, removed initially     for       simplicity and sanity
+
+  dealerCards.push(currentlyBeingDealtCard("dealer"));
+  dealerCards.push(currentlyBeingDealtCard("dealer"));
+
+  // add setTimeout for dealing realism
+  userScore = computeTotal(userCards);
+  dealerScore = computeTotal(dealerCards);
+  if (userScore >= 9 && userScore <= 11) {
+    doubleDownBtn.disabled = false;
+  }
+
+  updateScoreElements();
+
+  if (userScore === 21 && dealerScore !== 21) {
+    console.log("Congrats on BlackJack!");
+    settleGame("win", 1.5);
+  }
+  if (userScore === 21 && dealerScore === 21) {
+    settleGame("tie");
+  }
+  if (userScore !== 21 && dealerScore === 21) {
+    settleGame("lose");
+  }
+}
+
+function handleOutcomeInterface(outcome) {
+  outcomeInterface.innerHTML = `You ${outcome}`;
+}
+function hitUser() {
+  userCards.push(currentlyBeingDealtCard("user"));
+
+  userScore = computeTotal(userCards);
+
+  updateScoreElements();
+  if (userScore > 21) {
+    settleGame("lose");
+  }
+  // compareTotals();
+}
+// When the player's turn comes, they place a bet equal to the original bet, and the dealer gives the player just one card, which is placed face down and is not turned up until the bets are settled at the end of the hand.
+function doubleDown() {
+  stayBtn.disabled = true;
+  hitBtn.disabled = true;
+  doubleDownBtn.disabled = true;
+  wagerAmount = wagerAmount + wagerAmount;
+  wagerElement.innerHTML = wagerAmount;
+  userCards.push(currentlyBeingDealtCard("user"));
+  userScore = computeTotal(userCards);
+  updateScoreElements();
+  dealerShowdown();
+}
 
 function computeTotal(hand) {
   // here's where I need to handle the ace dichotomy
@@ -84,132 +189,36 @@ function computeTotal(hand) {
 
 function compareTotals() {
   if (userScore > 21) {
+    console.log("You busted, you lose");
     settleGame("lose");
   } else if (userScore < 21) {
-    // will need an alert style message
+    console.log(`click hit if you would like another card`);
+    console.log(`click stay if you want to stay with what you have`);
   } else {
     console.log("You've got 21!!!");
   }
 }
 
-function updateScoreElements() {
-  dealerScoreElement.innerHTML = "";
-  userScoreElement.innerHTML = "";
-  dealerScoreElement.innerHTML = dealerScore;
-  userScoreElement.innerHTML = userScore;
-  //   const userScoreNode = document.createElement("div");
-  //   const dealerScoreNode = document.createElement("div");
-
-  //   userScoreNode.textContent = userScore;
-  //   userScoreElement.appendChild(userScore);
-  //   dealerScoreNode.textContent = dealerScore;
-  //   dealerScoreElement.appendChild(dealerScore);
-}
-
-function currentlyBeingDealtCard(player) {
-  const currentDeckLength = deck.length;
-  const randomCardPositionInDeck = Math.ceil(Math.random() * deck.length) - 1;
-  const actualCard = deck[randomCardPositionInDeck];
-  deck.splice(randomCardPositionInDeck, 1); // remove the currently being dealt card from the deck
-
-  if (player === "dealer") {
-    addCardToHand(actualCard, player);
+function settleGame(outcome, blackjackMultiplier = 1) {
+  if (outcome === "lose") {
+    bankroll -= wagerAmount;
+    handleOutcomeInterface(outcome);
+  } else if (outcome === "win") {
+    bankroll += wagerAmount * blackjackMultiplier;
+    handleOutcomeInterface(outcome);
+  } else {
+    console.log("breaking Even");
+    handleOutcomeInterface(outcome);
   }
-  if (player === "user") {
-    addCardToHand(actualCard, player);
-  }
-
-  return actualCard; // currentlyBeingDealtCard to be dealt to Dealer or User hand
+  bankrollElement.innerHTML = bankroll;
+  console.log(bankroll);
+  // disable buttons here, then re-enable on newHand();
 }
 
-function initialDeal() {
-  userCards.push(currentlyBeingDealtCard("user"));
-  userCards.push(currentlyBeingDealtCard("user")); // add setTimeout for dealing realism, removed initially     for       simplicity and sanity
-
-  dealerCards.push(currentlyBeingDealtCard("dealer"));
-  dealerCards.push(currentlyBeingDealtCard("dealer"));
-
-  // add setTimeout for dealing realism
-  userScore = computeTotal(userCards);
-  dealerScore = computeTotal(dealerCards);
-  if (userScore >= 9 && userScore <= 11) {
-    doubleDownBtn.disabled = false;
-  }
-
-  updateScoreElements();
-
-  if (userScore === 21 && dealerScore !== 21) {
-    console.log("Congrats on BlackJack!");
-    settleGame("win", 1.5);
-  }
-  if (userScore === 21 && dealerScore === 21) {
-    settleGame("tie");
-  }
-  if (userScore !== 21 && dealerScore === 21) {
-    settleGame("lose");
-  }
-}
-
-function addCardToHand(card, player) {
-  const cardElement = document.createElement("div");
-  const suitElement = document.createElement("div");
-  const rightRankElement = document.createElement("div");
-  const leftRankElement = document.createElement("div");
-
-  rightRankElement.textContent = card.rank;
-  rightRankElement.classList.add("rank", "rankRightSide");
-  leftRankElement.textContent = card.rank;
-  leftRankElement.classList.add("rank", "rankLeftSide");
-  suitElement.textContent = card.suitEmoji;
-  suitElement.classList.add("suit");
-  cardElement.classList.add("card");
-  cardElement.classList.add(card.suit);
-
-  cardElement.appendChild(leftRankElement);
-  cardElement.appendChild(suitElement);
-  cardElement.appendChild(rightRankElement);
-  player === "dealer"
-    ? dealerHandElement.appendChild(cardElement)
-    : userHandElement.appendChild(cardElement);
-}
-
-function handleOutcomeInterface(outcome) {
-  outcomeInterface.innerHTML = `You ${outcome}`;
-}
-
-function flipDealerCardUp() {
-  console.log(`The dealer exposes the ${dealerCards[0]}`);
-}
-
-// When the player's turn comes, they place a bet equal to the original bet, and the dealer gives the player just one card, which is placed face down and is not turned up until the bets are settled at the end of the hand.
-function doubleDown() {
-  stayBtn.disabled = true;
-  hitBtn.disabled = true;
-  doubleDownBtn.disabled = true;
-  wagerAmount = wagerAmount + wagerAmount;
-  wagerElement.innerHTML = wagerAmount;
-  userCards.push(currentlyBeingDealtCard("user"));
-  userScore = computeTotal(userCards);
-  updateScoreElements();
-  dealerShowdown();
-}
-
-function hitUser() {
-  userCards.push(currentlyBeingDealtCard("user"));
-
-  userScore = computeTotal(userCards);
-
-  updateScoreElements();
-  if (userScore > 21) {
-    settleGame("lose");
-  }
-  // compareTotals();
-}
-
-// the "Stay" function
 function dealerShowdown() {
   // When the dealer has served every player, the dealers face-down card is turned up. If the total is 17 or more, it must stand. If the total is 16 or under, they must take a card. The dealer must continue to take cards until the total is 17 or more, at which point the dealer must stand. If the dealer has an ace, and counting it as 11 would bring the total to 17 or more (but not over 21), the dealer must count the ace as 11 and stand. The dealer's decisions, then, are automatic on all plays, whereas the player always has the option of taking one or more cards.
-
+  stayBtn.disabled = true;
+  hitBtn.disabled = true;
   //   flipDealerCardUp();
   if (dealerScore === 21 && userScore === 21) {
     settleGame("tie");
@@ -232,33 +241,17 @@ function dealerShowdown() {
   }
 }
 
-// not sure about this function- logic may need to be spread elsewhere
-
-function settleGame(outcome, blackjackMultiplier = 1) {
-  if (outcome === "lose") {
-    bankroll -= wagerAmount;
-    handleOutcomeInterface(outcome);
-  } else if (outcome === "win") {
-    bankroll += wagerAmount * blackjackMultiplier;
-    handleOutcomeInterface(outcome);
-  } else {
-    console.log("breaking Even");
-    handleOutcomeInterface(outcome);
-  }
-  bankrollElement.innerHTML = bankroll;
-  console.log(bankroll);
-  // disable buttons here, then re-enable on newHand();
-}
-
 function resetGame() {
   dealerCards.splice(0, dealerCards.length); // reset game
   userCards.splice(0, userCards.length);
   userScore = 0;
   dealerScore = 0;
-  wagerAmount = 100; // will be more dynamic later
+  wager = 0;
   userHandElement.innerHTML = "";
   dealerHandElement.innerHTML = "";
   outcomeInterface.innerHTML = "";
+  stayBtn.disabled = false;
+  hitBtn.disabled = false;
 
   const deckStart = [
     { rank: "2", value: 2, suitEmoji: "♡", suit: "hearts" },
@@ -273,7 +266,7 @@ function resetGame() {
     { rank: "J", value: 10, suitEmoji: "♡", suit: "hearts" },
     { rank: "Q", value: 10, suitEmoji: "♡", suit: "hearts" },
     { rank: "K", value: 10, suitEmoji: "♡", suit: "hearts" },
-    { rank: "A", value: 0, suitEmoji: "♡", suit: "hearts" }, //[12]
+    { rank: "A", value: 0, suitEmoji: "♡", suit: "hearts" },
 
     { rank: "2", value: 2, suitEmoji: "♢", suit: "diamonds" },
     { rank: "3", value: 3, suitEmoji: "♢", suit: "diamonds" },
@@ -287,7 +280,7 @@ function resetGame() {
     { rank: "J", value: 10, suitEmoji: "♢", suit: "diamonds" },
     { rank: "Q", value: 10, suitEmoji: "♢", suit: "diamonds" },
     { rank: "K", value: 10, suitEmoji: "♢", suit: "diamonds" },
-    { rank: "A", value: 0, suitEmoji: "♢", suit: "diamonds" }, //[25]
+    { rank: "A", value: 0, suitEmoji: "♢", suit: "diamonds" },
 
     { rank: "2", value: 2, suitEmoji: "♧", suit: "clubs" },
     { rank: "3", value: 3, suitEmoji: "♧", suit: "clubs" },
@@ -323,7 +316,7 @@ function resetGame() {
 
 function newHand() {
   resetGame();
-  wagerElement.innerHTML = "Wager: 100";
+
   initialDeal();
-  // compareTotals();
+  compareTotals();
 }
