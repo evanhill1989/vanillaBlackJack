@@ -10,7 +10,7 @@
     <main>
       <div class="container">
         <div><button onclick="newHand()">New Hand</button></div>
-        <div>
+        <div id="dealer-board">
           <h3>dealer-hand</h3>
           <div class="card-container" id="dealer-hand">
             <!-- <div id="dealer-cards"></div> -->
@@ -23,8 +23,31 @@
 
         <div>
           <h3>Your Hand</h3>
-          <div class="card-container" id="user-hand">
-            <!-- <div id="user-cards"></div> -->
+          <div id="user-board">
+            <div class="card-container" id="user-hand">
+              <div class="card card-face diamonds">
+                <div class="rank rankLeftSide">5</div>
+                <div class="suit">♡</div>
+                <div class="rank rankRightSide"></div>
+              </div>
+              <div class="card card-face hearts">
+                <div class="rank rankLeftSide">5</div>
+                <div class="suit">♢</div>
+                <div class="rank rankRightSide"></div>
+              </div>
+            </div>
+            <div class="card-container" id="user-hand">
+              <div class="card card-face diamonds">
+                <div class="rank rankLeftSide">5</div>
+                <div class="suit">♡</div>
+                <div class="rank rankRightSide"></div>
+              </div>
+              <div class="card card-face hearts">
+                <div class="rank rankLeftSide">5</div>
+                <div class="suit">♢</div>
+                <div class="rank rankRightSide"></div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -35,7 +58,7 @@
               <div id="user_score"></div>
             </div>
             <button id="hit-btn" onClick="hitUser()">Hit</button>
-            <button id="stay-btn" onClick="dealerShowdown()">Stay</button>
+            <button id="stay-btn" onClick="stay()">Stay</button>
             <button id="doubledown-btn" onClick="doubleDown()" disabled>
               Double Down
             </button>

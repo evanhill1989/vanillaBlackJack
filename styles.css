@@ -31,6 +31,11 @@ main {
   display: flex;
 }
 
+#user-board {
+  display: flex;
+  flex-direction: row;
+}
+
 .card {
   position: absolute; /* Absolute positioning allows overlap */
   display: grid;

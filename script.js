@@ -140,7 +140,24 @@ function initialDeal() {
   }
 }
 
-initialDeal();
+function newHand() {
+  dealerCards.splice(0, dealerCards.length); // reset game
+  userCards.splice(0, userCards.length);
+
+  wager = 0;
+  userHandElement.innerHTML = "";
+  dealerHandElement.innerHTML = "";
+  outcomeInterface.innerHTML = "";
+  stayBtn.disabled = false;
+  hitBtn.disabled = false;
+
+  deck = deckStart;
+
+  initialDeal();
+  // compareTotals();
+}
+
+// initialDeal();
 
 // cards needs to have one simple source of truth/state
 // the nice thing about blackjack is there are so many edge cases, but they aren't bland old type issues
@@ -265,17 +282,58 @@ function hitUser() {
   if (score.user > 21) {
     settleGame("lose");
   }
-  // compareTotals();
+  doubleDownBtn.disabled = true;
+  splitBtn.disabled = true;
+}
+function doubleDown() {
+  stayBtn.disabled = true;
+  hitBtn.disabled = true;
+  doubleDownBtn.disabled = true;
+  wagerAmount = wagerAmount + wagerAmount;
+  wagerElement.innerHTML = wagerAmount;
+  userCards.push(currentlyBeingDealtCard("user"));
+
+  updateScore();
+  updateScoreElements();
+  stay(); // "doubling down" in live blackjack implies stay logic by default
+}
+function split() {
+  splitBtn.classList.add("activeChoice");
+}
+
+function stay() {
+  // When the dealer has served every player, the dealers face-down card is turned up. If the total is 17 or more, it must stand. If the total is 16 or under, they must take a card. The dealer must continue to take cards until the total is 17 or more, at which point the dealer must stand. If the dealer has an ace, and counting it as 11 would bring the total to 17 or more (but not over 21), the dealer must count the ace as 11 and stand. The dealer's decisions, then, are automatic on all plays, whereas the player always has the option of taking one or more cards.
+  stayBtn.disabled = true;
+  hitBtn.disabled = true;
+  //   flipDealerCardUp();
+  if (score.dealer === 21 && score.user === 21) {
+    settleGame("tie");
+  } else if (score.dealer > 21) {
+    settleGame("win");
+  } else if (score.dealer < 17) {
+    dealerCards.push(currentlyBeingDealtCard("dealer"));
+    updateScore();
+    updateScoreElements();
+
+    stay();
+  } else if (score.dealer > 16) {
+    if (score.dealer > score.user) {
+      settleGame("lose");
+    } else if (score.dealer === score.user) {
+      settleGame("tie");
+    } else {
+      settleGame("win");
+    }
+  }
 }
 
 function currentlyBeingDealtCard(player) {
   const randomCardPositionInDeck = Math.ceil(Math.random() * deck.length) - 1;
   const actualCard = deck[randomCardPositionInDeck];
-  // remove the currently being dealt card from the deck
 
   if (player === "user" && userCards.length === 0) {
     addCardToHandElement(deck[13], player);
-    deck.splice(deck[13], 1);
+    deck.splice(deck[13], 1); // remove the currently being dealt card from the deck
     return;
   } else if (player === "user" && userCards.length === 1) {
     addCardToHandElement(deck[0], player);
@@ -325,70 +383,6 @@ function addCardToHandElement(card, player) {
 }
 
 // When the player's turn comes, they place a bet equal to the original bet, and the dealer gives the player just one card, which is placed face down and is not turned up until the bets are settled at the end of the hand.
-function doubleDown() {
-  stayBtn.disabled = true;
-  hitBtn.disabled = true;
-  doubleDownBtn.disabled = true;
-  wagerAmount = wagerAmount + wagerAmount;
-  wagerElement.innerHTML = wagerAmount;
-  userCards.push(currentlyBeingDealtCard("user"));
-
-  updateScore();
-  updateScoreElements();
-  dealerShowdown();
-}
-
-// function computeTotal(hand) {
-//   // here's where I need to handle the ace dichotomy
-//   let handScore = 0;
-//   let numberOfAces = hand.reduce((aceCount, card) => {
-//     return card.rank === "A" ? aceCount + 1 : aceCount;
-//   }, 0);
-//   let handWithNoAces = hand.filter((card) => card.type !== "A");
-//   let handWithNoAcesTotal = handWithNoAces.reduce(
-//     (sum, card) => sum + card.value,
-//     0
-//   );
-
-// Logic here is a little simpler than i expected because you're never going to have more than one ace > 11
-// Which means either all the aces will all be worth 1 or one will be 11 and the rest must be 1s
-//
-//   switch (numberOfAces) {
-//     case 0:
-//       handScore = handWithNoAcesTotal;
-//       break;
-//     case 1:
-//       if (handWithNoAcesTotal <= 10) {
-//         handScore = handWithNoAcesTotal + 11;
-//       } else {
-//         handScore = handWithNoAcesTotal + 1;
-//       }
-//       break;
-//     case 2: // 10 1 11
-//       if (handWithNoAcesTotal <= 9) {
-//         handScore = handWithNoAcesTotal + 12;
-//       } else {
-//         handScore = handWithNoAcesTotal + 2;
-//       }
-//       break;
-//     case 3:
-//       if (handWithNoAcesTotal <= 8) {
-//         handScore = handWithNoAcesTotal + 13;
-//       } else {
-//         handScore = handWithNoAcesTotal + 3;
-//       }
-//       break;
-//     case 4:
-//       if (handWithNoAcesTotal <= 7) {
-//         handScore = handWithNoAcesTotal + 14;
-//       } else {
-//         handScore = handWithNoAcesTotal + 4;
-//       }
-//       break;
-//   }
-//   console.log("number of aces:", numberOfAces);
-
-// }
 
 function compareTotals() {
   if (userScore > 21) {
@@ -416,55 +410,9 @@ function settleGame(outcome, blackjackMultiplier = 1) {
   bankrollElement.innerHTML = bankroll;
   console.log(bankroll);
   // disable buttons here, then re-enable on newHand();
-}
-
-function dealerShowdown() {
-  // When the dealer has served every player, the dealers face-down card is turned up. If the total is 17 or more, it must stand. If the total is 16 or under, they must take a card. The dealer must continue to take cards until the total is 17 or more, at which point the dealer must stand. If the dealer has an ace, and counting it as 11 would bring the total to 17 or more (but not over 21), the dealer must count the ace as 11 and stand. The dealer's decisions, then, are automatic on all plays, whereas the player always has the option of taking one or more cards.
-  stayBtn.disabled = true;
-  hitBtn.disabled = true;
-  //   flipDealerCardUp();
-  if (score.dealer === 21 && score.user === 21) {
-    settleGame("tie");
-  } else if (score.dealer > 21) {
-    settleGame("win");
-  } else if (score.dealer < 17) {
-    dealerCards.push(currentlyBeingDealtCard("dealer"));
-    updateScore();
-    updateScoreElements();
-
-    dealerShowdown();
-  } else if (score.dealer > 16) {
-    if (score.dealer > score.user) {
-      settleGame("lose");
-    } else if (score.dealer === score.user) {
-      settleGame("tie");
-    } else {
-      settleGame("win");
-    }
-  }
+  splitBtn.disabled = true;
 }
 
 function handleOutcomeInterface(outcome) {
   outcomeInterface.innerHTML = `You ${outcome}`;
-}
-
-function resetGame() {
-  dealerCards.splice(0, dealerCards.length); // reset game
-  userCards.splice(0, userCards.length);
-
-  wager = 0;
-  userHandElement.innerHTML = "";
-  dealerHandElement.innerHTML = "";
-  outcomeInterface.innerHTML = "";
-  stayBtn.disabled = false;
-  hitBtn.disabled = false;
-
-  deck = deckStart;
-}
-
-function newHand() {
-  resetGame();
-
-  initialDeal();
-  compareTotals();
 }
