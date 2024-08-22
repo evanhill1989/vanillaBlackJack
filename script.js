@@ -62,7 +62,8 @@ deck = deckStart;
 let bankroll = 1000;
 let wagerAmount = 100;
 
-const userHandElement = document.getElementById("user-hand");
+const userBoardElement = document.getElementById("user-board");
+const userHandOneElement = document.getElementById("user-hand-one");
 const dealerHandElement = document.getElementById("dealer-hand");
 const userScoreElement = document.getElementById("user_score");
 const dealerScoreElement = document.getElementById("dealer_score");
@@ -82,23 +83,24 @@ const cardHands = {
     { rank: "3", value: 3, suitEmoji: "♡", suit: "hearts" },
     { rank: "J", value: 10, suitEmoji: "♤", suit: "spades" },
   ],
-  userCards: [
+  userCardsOne: [
     { rank: "5", value: 5, suitEmoji: "♡", suit: "hearts" },
     { rank: "5", value: 5, suitEmoji: "♢", suit: "diamonds" },
   ],
+  userCardsTwo: [],
 };
 
-const userCards = cardHands.userCards;
+const userCardsOne = cardHands.userCardsOne;
+const userCardsTwo = cardHands.userCardsTwo;
 const dealerCards = cardHands.dealerCards;
-const userCard1 = cardHands.userCards[0];
+const userCard1 = cardHands.userCardsOne[0];
+
+console.log("hi");
 
 const score = {
   dealer: 0,
   user: 0,
 };
-// const dealerScore = dealerCards.reduce((sum, card) => sum + card.value, 0);
-
-// const userScore = userCards.reduce((sum, card) => sum + card.value, 0);
 
 function initialDeal() {
   // cardHands.userCards.push(currentlyBeingDealtCard("user"));
@@ -119,13 +121,14 @@ function initialDeal() {
   }
 
   //pair SPLIT hand  logic --- type of thing that should be a function? Performance issues? *****
-  const firstCard = userCards[0].value;
-  const secondCard = userCards[1].value;
+  const firstCard = userCardsOne[0].value;
+  const secondCard = userCardsOne[1].value;
+  console.log("firstCard -->", firstCard);
   if (firstCard === secondCard) {
     splitBtn.disabled = false;
   }
 
-  userCards.forEach((card) => addCardToHandElement(card, "user"));
+  userCardsOne.forEach((card) => addCardToHandElement(card, "user"));
   dealerCards.forEach((card) => addCardToHandElement(card, "dealer"));
 
   if (score.user === 21 && score.dealer !== 21) {
@@ -140,12 +143,82 @@ function initialDeal() {
   }
 }
 
+function currentlyBeingDealtCard(player) {
+  const randomCardPositionInDeck = Math.ceil(Math.random() * deck.length) - 1;
+  const actualCard = deck[randomCardPositionInDeck];
+
+  if (player === "user" && userCards.length === 0) {
+    addCardToHandElement(deck[13], player);
+    deck.splice(deck[13], 1); // remove the currently being dealt card from the deck
+    return;
+  } else if (player === "user" && userCards.length === 1) {
+    addCardToHandElement(deck[0], player);
+    deck.splice(deck[0], 1);
+    return;
+  } else {
+    addCardToHandElement(actualCard, player);
+    deck.splice(randomCardPositionInDeck, 1);
+    return actualCard;
+  }
+
+  // return actualCard; // currentlyBeingDealtCard to be dealt to Dealer or User hand
+}
+
+function addCardToHandElement(card, player) {
+  const cardElement = document.createElement("div");
+  const suitElement = document.createElement("div");
+  const rightRankElement = document.createElement("div");
+  const leftRankElement = document.createElement("div");
+
+  rightRankElement.textContent = card.rank;
+  rightRankElement.classList.add("rank", "rankRightSide");
+  leftRankElement.textContent = card.rank;
+  leftRankElement.classList.add("rank", "rankLeftSide");
+  suitElement.textContent = card.suitEmoji;
+  suitElement.classList.add("suit");
+  cardElement.classList.add("card");
+
+  if (player === "dealer" && dealerCards.length === 0) {
+    cardElement.classList.add("card-back");
+    dealerHandElement.appendChild(cardElement);
+  } else if (player === "user") {
+    cardElement.classList.add("card-face");
+    cardElement.appendChild(leftRankElement);
+    cardElement.appendChild(suitElement);
+    cardElement.appendChild(rightRankElement);
+
+    userHandOneElement.appendChild(cardElement);
+  } else {
+    cardElement.classList.add("card-face");
+    cardElement.appendChild(leftRankElement);
+    cardElement.appendChild(suitElement);
+    cardElement.appendChild(rightRankElement);
+
+    dealerHandElement.appendChild(cardElement);
+  }
+}
+
+// When the player's turn comes, they place a bet equal to the original bet, and the dealer gives the player just one card, which is placed face down and is not turned up until the bets are settled at the end of the hand.
+
+function compareTotals() {
+  if (userScore > 21) {
+    console.log("You busted, you lose");
+    settleGame("lose");
+  } else if (userScore < 21) {
+    console.log(`click hit if you would like another card`);
+    console.log(`click stay if you want to stay with what you have`);
+  } else {
+    console.log("You've got 21!!!");
+  }
+}
+
 function newHand() {
   dealerCards.splice(0, dealerCards.length); // reset game
-  userCards.splice(0, userCards.length);
+  userCardsOne.splice(0, userCardsOne.length);
+  userCardsTwo.splice(0, userCardsTwo.length);
 
   wager = 0;
-  userHandElement.innerHTML = "";
+  userHandOneElement.innerHTML = "";
   dealerHandElement.innerHTML = "";
   outcomeInterface.innerHTML = "";
   stayBtn.disabled = false;
@@ -159,10 +232,6 @@ function newHand() {
 
 // initialDeal();
 
-// cards needs to have one simple source of truth/state
-// the nice thing about blackjack is there are so many edge cases, but they aren't bland old type issues
-// handle split -- splitting 2 aces might be a one - off
-// handle flipping dealer card at showdown
 function updateScore() {
   // here's where I need to handle the ace dichotomy
   // doing a lot of identical things twice here but need to to stay sane for now, only handle so much abstraction at once lol
@@ -170,11 +239,11 @@ function updateScore() {
   let numbDealerAces = dealerCards.reduce((aceCount, card) => {
     return card.rank === "A" ? aceCount + 1 : aceCount;
   }, 0);
-  let numbUserAces = userCards.reduce((aceCount, card) => {
+  let numbUserAces = userCardsOne.reduce((aceCount, card) => {
     return card.rank === "A" ? aceCount + 1 : aceCount;
   }, 0);
   let dealerNonAces = dealerCards.filter((card) => card.type !== "A");
-  let userNonAces = userCards.filter((card) => card.type !== "A");
+  let userNonAces = userCardsOne.filter((card) => card.type !== "A");
   let dealerNonAcesTotal = dealerNonAces.reduce(
     (sum, card) => sum + card.value,
     0
@@ -254,18 +323,6 @@ function updateScore() {
 
   console.log(score);
 }
-// function updateScore() {
-//   const computeDealerScore = dealerCards.reduce(
-//     (sum, card) => sum + card.value,
-//     0
-//   );
-//   console.log("userCards inside updateScore:", userCards);
-//   const computeUserScore = userCards.reduce((sum, card) => sum + card.value, 0);
-
-//   score.user = computeUserScore;
-//   score.dealer = computeDealerScore;
-//   console.log(score.user, score.dealer, "inside updateScore()");
-// }
 
 function updateScoreElements() {
   dealerScoreElement.innerHTML = "";
@@ -274,7 +331,7 @@ function updateScoreElements() {
   userScoreElement.innerHTML = score.user;
 }
 
-function hitUser() {
+function hitUser(hand) {
   userCards.push(currentlyBeingDealtCard("user"));
   updateScore();
   console.log(score, "inside hitUser");
@@ -299,6 +356,24 @@ function doubleDown() {
 }
 function split() {
   splitBtn.classList.add("activeChoice");
+  userCardsTwo.push(userCardsOne.splice(1, 1)[0]);
+
+  const userHandTwo = document.createElement("div");
+  userHandTwo.id = "user-hand-two";
+  const userHandTwoContainer = document.createElement("div");
+  userHandTwoContainer.classList.add("card-container");
+  // somewhere need to uniquely identify this hand to add cards to
+  // this is pretty repetitive from addCardToHandElement ...
+  const cardElement = document.createElement("div");
+  const suitElement = document.createElement("div");
+  const rightRankElement = document.createElement("div");
+  // cardElement.classList.add("card-back");
+  cardElement.classList.add("card-face");
+  cardElement.appendChild(leftRankElement);
+  cardElement.appendChild(suitElement);
+  cardElement.appendChild(rightRankElement);
+  userHandTwoContainer.appendChild(cardElement);
+  userBoardElement.appendChild(userHandTwoContainer);
 }
 
 function stay() {
@@ -327,75 +402,6 @@ function stay() {
   }
 }
 
-function currentlyBeingDealtCard(player) {
-  const randomCardPositionInDeck = Math.ceil(Math.random() * deck.length) - 1;
-  const actualCard = deck[randomCardPositionInDeck];
-
-  if (player === "user" && userCards.length === 0) {
-    addCardToHandElement(deck[13], player);
-    deck.splice(deck[13], 1); // remove the currently being dealt card from the deck
-    return;
-  } else if (player === "user" && userCards.length === 1) {
-    addCardToHandElement(deck[0], player);
-    deck.splice(deck[0], 1);
-    return;
-  } else {
-    addCardToHandElement(actualCard, player);
-    deck.splice(randomCardPositionInDeck, 1);
-    return actualCard;
-  }
-
-  // return actualCard; // currentlyBeingDealtCard to be dealt to Dealer or User hand
-}
-
-function addCardToHandElement(card, player) {
-  const cardElement = document.createElement("div");
-  const suitElement = document.createElement("div");
-  const rightRankElement = document.createElement("div");
-  const leftRankElement = document.createElement("div");
-
-  rightRankElement.textContent = card.rank;
-  rightRankElement.classList.add("rank", "rankRightSide");
-  leftRankElement.textContent = card.rank;
-  leftRankElement.classList.add("rank", "rankLeftSide");
-  suitElement.textContent = card.suitEmoji;
-  suitElement.classList.add("suit");
-  cardElement.classList.add("card");
-
-  if (player === "dealer" && dealerCards.length === 0) {
-    cardElement.classList.add("card-back");
-    dealerHandElement.appendChild(cardElement);
-  } else if (player === "user") {
-    cardElement.classList.add("card-face");
-    cardElement.appendChild(leftRankElement);
-    cardElement.appendChild(suitElement);
-    cardElement.appendChild(rightRankElement);
-
-    userHandElement.appendChild(cardElement);
-  } else {
-    cardElement.classList.add("card-face");
-    cardElement.appendChild(leftRankElement);
-    cardElement.appendChild(suitElement);
-    cardElement.appendChild(rightRankElement);
-
-    dealerHandElement.appendChild(cardElement);
-  }
-}
-
-// When the player's turn comes, they place a bet equal to the original bet, and the dealer gives the player just one card, which is placed face down and is not turned up until the bets are settled at the end of the hand.
-
-function compareTotals() {
-  if (userScore > 21) {
-    console.log("You busted, you lose");
-    settleGame("lose");
-  } else if (userScore < 21) {
-    console.log(`click hit if you would like another card`);
-    console.log(`click stay if you want to stay with what you have`);
-  } else {
-    console.log("You've got 21!!!");
-  }
-}
-
 function settleGame(outcome, blackjackMultiplier = 1) {
   if (outcome === "lose") {
     bankroll -= wagerAmount;
@@ -416,3 +422,5 @@ function settleGame(outcome, blackjackMultiplier = 1) {
 function handleOutcomeInterface(outcome) {
   outcomeInterface.innerHTML = `You ${outcome}`;
 }
+
+initialDeal();
