@@ -10,65 +10,29 @@
     <main>
       <div class="container">
         <div><button onclick="newHand()">New Hand</button></div>
-        <div id="dealer-board">
-          <h3>dealer-hand</h3>
-          <div class="card-container" id="dealer-hand">
-            <!-- <div id="dealer-cards"></div> -->
-          </div>
-          <div class="score">
-            <h4>Dealer Score:</h4>
-            <div id="dealer_score"></div>
-          </div>
-        </div>
+        <div class="game-board">
+          <h3>Dealer Hand</h3>
+          <div id="dealer-board">
+            <div class="hand-container" id="dealer-hand"></div>
 
-        <div>
-          <h3>Your Hand</h3>
-          <div id="user-board">
-            <div class="">
-              <div id="user-hand-one"></div>
-              <!-- <div class="card-container" id="user-hand">
-                <div class="card card-face diamonds">
-                  <div class="rank rankLeftSide">5</div>
-                  <div class="suit">♡</div>
-                  <div class="rank rankRightSide"></div>
-                </div>
-                <div class="card card-face hearts">
-                  <div class="rank rankLeftSide">5</div>
-                  <div class="suit">♢</div>
-                  <div class="rank rankRightSide"></div>
-                </div>
-              </div> -->
+            <div class="score">
+              <h4>Dealer Score:</h4>
+              <div id="dealer_score"></div>
             </div>
-            <!-- <div id="user-hand-two">
-              <div class="card-container" id="user-hand">
-                <div class="card card-face diamonds">
-                  <div class="rank rankLeftSide">5</div>
-                  <div class="suit">♡</div>
-                  <div class="rank rankRightSide"></div>
+          </div>
+
+          <div>
+            <h3>Your Hand</h3>
+            <div id="user-board">
+              <div>
+                <div class="hand-container" id="user-hand-one"></div>
+                <div class="score">
+                  <h4>User Score:</h4>
+                  <div id="user_score"></div>
                 </div>
-                <div class="card card-face hearts">
-                  <div class="rank rankLeftSide">5</div>
-                  <div class="suit">♢</div>
-                  <div class="rank rankRightSide"></div>
-                </div>
+                <div class="action-container" id="action-container"></div>
               </div>
-              <div class="hand_interface">
-                <div>
-                  <div class="score">
-                    <h4>User Score:</h4>
-                    <div id="user_score"></div>
-                  </div>
-                  <button id="hit-btn" onClick="hitUser()">Hit</button>
-                  <button id="stay-btn" onClick="stay()">Stay</button>
-                  <button id="doubledown-btn" onClick="doubleDown()" disabled>
-                    Double Down
-                  </button>
-                  <button id="split-btn" onClick="split()" disabled>
-                    Split
-                  </button>
-                </div>
-              </div>
-            </div> -->
+            </div>
           </div>
         </div>
 
@@ -94,3 +58,33 @@
     <script src="script.js"></script>
   </body>
 </html>
+
+<!-- 
+<button id="hit-btn" onClick="hitUser('userHandOne')">
+  Hit
+</button>
+<button id="stay-btn" onClick="stay()">Stay</button>
+<button id="doubledown-btn" onClick="doubleDown()" disabled>
+  Double Down
+</button>
+<button id="split-btn" onClick="split()" disabled>Split</button> -->
+
+<!-- <div id="user-hand-two">
+              
+                <div class="hand_interface">
+                  <div>
+                    <div class="score">
+                      <h4>User Score:</h4>
+                      <div id="user_score"></div>
+                    </div>
+                    <button id="hit-btn" onClick="hitUser()">Hit</button>
+                    <button id="stay-btn" onClick="stay()">Stay</button>
+                    <button id="doubledown-btn" onClick="doubleDown()" disabled>
+                      Double Down
+                    </button>
+                    <button id="split-btn" onClick="split()" disabled>
+                      Split
+                    </button>
+                  </div>
+                </div>
+              </div> -->
