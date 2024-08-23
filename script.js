@@ -64,7 +64,7 @@ let wagerAmount = 100;
 
 const userBoardElement = document.getElementById("user-board");
 const userHandOneElement = document.getElementById("user-hand-one");
-// const userHandTwoElement = document.getElementById("user-hand-two");
+const userHandTwoElement = document.getElementById("user-hand-two");
 const dealerHandElement = document.getElementById("dealer-hand");
 const userScoreElement = document.getElementById("user_score");
 const dealerScoreElement = document.getElementById("dealer_score");
@@ -73,8 +73,13 @@ const actionInterface = document.getElementById("action-container");
 const wagerElement = document.getElementById("wager_amount");
 const bankrollElement = document.getElementById("bankroll");
 
-bankrollElement.innerHTML = bankroll;
+const hitBtn = document.createElement("button");
+const stayBtn = document.createElement("button");
+const doubleDownBtn = document.createElement("button");
+const splitBtn = document.createElement("button");
 
+bankrollElement.innerHTML = bankroll;
+// SETTLE GAME !!!
 // it would almost be nice just to have methods directly attached to my hands objects...
 const hands = {
   dealerHand: [],
@@ -111,14 +116,14 @@ function updateRemainingDeck(card) {
 function dealCard(hand) {
   const randomCard = deck[Math.ceil(Math.random() * deck.length) - 1];
   if (hand === "userHandOne") {
-    userHandOne.push(randomCard);
+    userHandOne.push({ rank: "5", value: 5, suitEmoji: "♡", suit: "hearts" });
   } else if (hand === "userHandTwo") {
     userHandTwo.push(randomCard);
   } else {
     dealerHand.push(randomCard);
   }
   updateRemainingDeck(randomCard);
-  uiUpdateHand(hand, randomCard);
+  uiUpdateHand(hand, { rank: "5", value: 5, suitEmoji: "♡", suit: "hearts" });
 }
 
 function uiUpdateHand(hand, card) {
@@ -162,10 +167,8 @@ function uiCreateCard(hand, card) {
 }
 
 function uiCreateActionBtns(hand) {
-  const hitBtn = document.createElement("button");
-  const stayBtn = document.createElement("button");
-  const doubleDownBtn = document.createElement("button");
-  const splitBtn = document.createElement("button");
+  // Torn about how to handle these - for now creating dynamically
+  // unnecessary JS though probably.
 
   hitBtn.textContent = "Hit";
   stayBtn.textContent = "Stay";
@@ -197,6 +200,21 @@ function uiCreateActionBtns(hand) {
   actionInterface.appendChild(stayBtn);
   actionInterface.appendChild(doubleDownBtn);
   actionInterface.appendChild(splitBtn);
+
+  // Really don't want to force the logic in here, but I need scope on these
+  // elements i created above immediately after they are created.
+  // but it feels like it will be problematic sooner or later...
+  // anyway just doing it to see if it works now...
+  const firstCard = userHandOne[0].value;
+  const secondCard = userHandOne[1].value;
+
+  if (firstCard === secondCard) {
+    splitBtn.disabled = false;
+  }
+
+  if (score.userHandOne >= 9 && score.userHandOne <= 11) {
+    doubleDownBtn.disabled = false;
+  }
 }
 
 function initialDeal() {
@@ -210,18 +228,6 @@ function initialDeal() {
   uiUpdateScore();
 
   uiCreateActionBtns("userHandOne");
-
-  // if (score.userHandOne >= 9 && score.userHandOne <= 11) {
-  //   doubleDownBtn.disabled = false;
-  // }
-
-  //pair SPLIT hand  logic --- type of thing that should be a function? Performance issues? *****
-  const firstCard = userHandOne[0].value;
-  const secondCard = userHandOne[1].value;
-
-  if (firstCard !== secondCard) {
-    splitBtn.disabled = false;
-  }
 
   if (score.userHandOne === 21 && score.dealer !== 21) {
     console.log("Congrats on BlackJack!");
@@ -419,7 +425,7 @@ function stay() {
   stayBtn.disabled = true;
   hitBtn.disabled = true;
   //   flipDealerCardUp();
-  if (score.dealer === 21 && score.user === 21) {
+  if (score.dealer === 21 && score.userHandOne === 21) {
     settleGame("tie");
   } else if (score.dealer > 21) {
     settleGame("win");
@@ -451,26 +457,19 @@ function doubleDown() {
   uiUpdateScore();
   stay(); // "doubling down" in live blackjack implies stay logic by default
 }
+function uiRemoveCard() {
+  // kinda hacky state handling ... but it works
+  userHandOneElement.removeChild(userHandOneElement.lastChild);
+}
 function split() {
   splitBtn.classList.add("activeChoice");
   userHandTwo.push(userHandOne.splice(1, 1)[0]);
+  console.log(userHandTwo, "<--userHandTwo in split");
+  console.log(userHandOne, "<--userHandOne in split");
 
-  const userHandTwo = document.createElement("div");
-  userHandTwo.id = "user-hand-two";
-  const userHandTwoContainer = document.createElement("div");
-  userHandTwoContainer.classList.add("card-container");
-  // somewhere need to uniquely identify this hand to add cards to
-  // this is pretty repetitive from addCardToHandElement ...
-  const cardElement = document.createElement("div");
-  const suitElement = document.createElement("div");
-  const rightRankElement = document.createElement("div");
-  // cardElement.classList.add("card-back");
-  cardElement.classList.add("card-face");
-  cardElement.appendChild(leftRankElement);
-  cardElement.appendChild(suitElement);
-  cardElement.appendChild(rightRankElement);
-  userHandTwoContainer.appendChild(cardElement);
-  userBoardElement.appendChild(userHandTwoContainer);
+  uiRemoveCard();
+  uiUpdateHand("userHandTwo", userHandTwo[0]);
+  splitBtn.disabled = true;
 }
 
 function settleGame(outcome, blackjackMultiplier = 1) {
