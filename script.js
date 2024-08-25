@@ -1,4 +1,3 @@
-let deck = [];
 const deckStart = [
   { rank: "2", value: 2, suitEmoji: "♡", suit: "hearts" },
   { rank: "3", value: 3, suitEmoji: "♡", suit: "hearts" },
@@ -57,7 +56,7 @@ const deckStart = [
   { rank: "A", value: 0, suitEmoji: "♤", suit: "spades" },
 ];
 
-deck = deckStart;
+const deck = [...deckStart];
 
 let bankroll = 1000;
 let wagerAmount = 100;
@@ -66,40 +65,52 @@ const userBoardElement = document.getElementById("user-board");
 const userHandOneElement = document.getElementById("user-hand-one");
 const userHandTwoElement = document.getElementById("user-hand-two");
 const dealerHandElement = document.getElementById("dealer-hand");
-const userScoreElement = document.getElementById("user_score");
+const userScoreElementOne = document.getElementById("user_score-one");
+const userScoreElementTwo = document.getElementById("user_score-two");
 const dealerScoreElement = document.getElementById("dealer_score");
 const outcomeInterface = document.getElementById("outcome_interface");
 const actionInterface = document.getElementById("action-container");
 const wagerElement = document.getElementById("wager_amount");
 const bankrollElement = document.getElementById("bankroll");
 
-const hitBtn = document.createElement("button");
-const stayBtn = document.createElement("button");
-const doubleDownBtn = document.createElement("button");
-const splitBtn = document.createElement("button");
+const splitBtn = document.getElementById("split-btn");
+
+//NEXT STEP -- Natural blackjack didn't work
+const hitBtnOne = document.getElementById("hit-btn-handOne");
+const stayBtnOne = document.getElementById("stay-btn-handOne");
+const doubleDownBtnOne = document.getElementById("doubledown-btn-handOne");
+
+const hitBtnTwo = document.getElementById("hit-btn-handTwo");
+const stayBtnTwo = document.getElementById("stay-btn-handTwo");
+const doubleDownBtnTwo = document.getElementById("doubledown-btn-handTwo");
 
 bankrollElement.innerHTML = bankroll;
-// SETTLE GAME !!!
-// it would almost be nice just to have methods directly attached to my hands objects...
+
+// Isolate play while "splitting" --
+
+// it would almost be nice just to have methods directly attached to my hands objects... but i don't know exactly how to do that
+// This is why React -- if changing hands state, just directly changed UI this would all be so much easier
 const hands = {
-  dealerHand: [],
-  userHandOne: [],
-  userHandTwo: [],
-  //   dealerHand: [
-  //     { rank: "3", value: 3, suitEmoji: "♡", suit: "hearts" },
-  //     { rank: "J", value: 10, suitEmoji: "♤", suit: "spades" },
-  //   ],
-  //   userHandOne: [
-  //     { rank: "5", value: 5, suitEmoji: "♡", suit: "hearts" },
-  //     { rank: "5", value: 5, suitEmoji: "♢", suit: "diamonds" },
-  //   ],
-  //   userHandTwo: [],
+  dealerHand: {
+    cards: [],
+    isActive: true,
+    score: 0,
+  },
+  userHandOne: {
+    cards: [],
+    isActive: true,
+    score: 0,
+  },
+  userHandTwo: {
+    cards: [],
+    isActive: false,
+    score: 0,
+  },
 };
 
 const userHandOne = hands.userHandOne;
 const userHandTwo = hands.userHandTwo; // Will only have a "userHandTwo" after split() -- function for splitting a pair
 const dealerHand = hands.dealerHand;
-const userCard1 = hands.userHandOne[0];
 
 const score = {
   dealerHand: 0,
@@ -116,14 +127,14 @@ function updateRemainingDeck(card) {
 function dealCard(hand) {
   const randomCard = deck[Math.ceil(Math.random() * deck.length) - 1];
   if (hand === "userHandOne") {
-    userHandOne.push({ rank: "5", value: 5, suitEmoji: "♡", suit: "hearts" });
+    userHandOne.cards.push(randomCard);
   } else if (hand === "userHandTwo") {
-    userHandTwo.push(randomCard);
+    userHandTwo.cards.push(randomCard);
   } else {
-    dealerHand.push(randomCard);
+    dealerHand.cards.push(randomCard);
   }
   updateRemainingDeck(randomCard);
-  uiUpdateHand(hand, { rank: "5", value: 5, suitEmoji: "♡", suit: "hearts" });
+  uiUpdateHand(hand, randomCard);
 }
 
 function uiUpdateHand(hand, card) {
@@ -166,57 +177,6 @@ function uiCreateCard(hand, card) {
   }
 }
 
-function uiCreateActionBtns(hand) {
-  // Torn about how to handle these - for now creating dynamically
-  // unnecessary JS though probably.
-
-  hitBtn.textContent = "Hit";
-  stayBtn.textContent = "Stay";
-  doubleDownBtn.textContent = "Double Down";
-  splitBtn.textContent = "Split";
-
-  hitBtn.id = "hit-btn";
-  stayBtn.id = "stay-btn";
-  doubleDownBtn.id = "doubledown-btn";
-  splitBtn.id = "split-btn";
-
-  doubleDownBtn.disabled = true;
-  splitBtn.disabled = true;
-
-  hitBtn.addEventListener("click", () => {
-    hitUser(hand);
-  });
-  stayBtn.addEventListener("click", () => {
-    stay(hand);
-  });
-  doubleDownBtn.addEventListener("click", () => {
-    doubleDown(hand);
-  });
-  splitBtn.addEventListener("click", () => {
-    split();
-  });
-
-  actionInterface.appendChild(hitBtn);
-  actionInterface.appendChild(stayBtn);
-  actionInterface.appendChild(doubleDownBtn);
-  actionInterface.appendChild(splitBtn);
-
-  // Really don't want to force the logic in here, but I need scope on these
-  // elements i created above immediately after they are created.
-  // but it feels like it will be problematic sooner or later...
-  // anyway just doing it to see if it works now...
-  const firstCard = userHandOne[0].value;
-  const secondCard = userHandOne[1].value;
-
-  if (firstCard === secondCard) {
-    splitBtn.disabled = false;
-  }
-
-  if (score.userHandOne >= 9 && score.userHandOne <= 11) {
-    doubleDownBtn.disabled = false;
-  }
-}
-
 function initialDeal() {
   dealCard("userHandOne");
   dealCard("userHandOne");
@@ -227,67 +187,91 @@ function initialDeal() {
   updateScore();
   uiUpdateScore();
 
-  uiCreateActionBtns("userHandOne");
+  // uiCreateActionBtns("userHandOne");
 
-  if (score.userHandOne === 21 && score.dealer !== 21) {
+  if (score.userHandOne === 21 && score.dealerHand !== 21) {
     console.log("Congrats on BlackJack!");
-    settleGame("win", 1.5);
+    settleHand(userHandOne, "win", 1.5);
   }
-  if (score.userHandOne === 21 && score.dealer === 21) {
-    settleGame("tie");
+  if (score.userHandOne === 21 && score.dealerHand === 21) {
+    settleHand(userHandOne, "tie");
   }
-  if (score.userHandOne !== 21 && score.dealer === 21) {
-    settleGame("lose");
+  if (score.userHandOne !== 21 && score.dealerHand === 21) {
+    settleHand(userHandOne, "lose");
   }
-}
 
-function compareTotals() {
-  if (userScore > 21) {
-    console.log("You busted, you lose");
-    settleGame("lose");
-  } else if (userScore < 21) {
-    console.log(`click hit if you would like another card`);
-    console.log(`click stay if you want to stay with what you have`);
-  } else {
-    console.log("You've got 21!!!");
+  // const firstCard = userHandOne[0].value;
+  // const secondCard = userHandOne[1].value;
+
+  // if (firstCard !== secondCard) {
+  //   splitBtn.disabled = false;
+  // }
+  if (score.userHandOne >= 9 && score.userHandOne <= 11) {
+    doubleDownBtnOne.disabled = false;
   }
 }
 
 function newHand() {
-  dealerHand.splice(0, dealerHand.length); // reset game
-  userHandOne.splice(0, userHandOne.length);
-  userHandTwo.splice(0, userHandTwo.length);
+  // This is gross and temporary
+  // Really i need to dump const userHandOne
+
+  hands.dealerHand = { cards: [], isActive: true, score: 0 };
+  hands.userHandOne = { cards: [], isActive: true, score: 0 };
+  hands.userHandTwo = { cards: [], isActive: false, score: 0 };
+
+  hands.userHandTwo.score = 0;
+
+  hands.dealerHand.cards.splice(0, dealerHand.length);
+  hands.userHandOne.cards.splice(0, userHandOne.length);
+  hands.userHandTwo.cards.splice(0, userHandTwo.length);
+  hands.dealerHand.score = 0;
+  hands.userHandOne.score = 0;
+  hands.userHandTwo.score = 0;
+
+  userHandOne.cards = [];
+  userHandTwo.cards = [];
+  dealerHand.cards = [];
+  userHandOne.score = 0;
+  userHandTwo.score = 0;
+  dealerHand.score = 0;
+
+  deck.splice(0, deck.length);
+  deck.push(...deckStart);
 
   wager = 0;
   userHandOneElement.innerHTML = "";
   dealerHandElement.innerHTML = "";
   outcomeInterface.innerHTML = "";
-  stayBtn.disabled = false;
-  hitBtn.disabled = false;
+  stayBtnOne.disabled = false;
 
-  deck = deckStart;
+  hitBtnOne.disabled = false;
 
+  uiClearHandTwo();
+  splitBtn.disabled = false;
   initialDeal();
-  // compareTotals();
 }
 
 function updateScore() {
   // here's where I need to handle the ace dichotomy
   // doing a lot of identical things twice here but need to to stay sane for now, only handle so much abstraction at once lol
 
-  let numDealerAces = dealerHand.reduce((aceCount, card) => {
+  let numDealerAces = dealerHand.cards.reduce((aceCount, card) => {
     return card.rank === "A" ? aceCount + 1 : aceCount;
   }, 0);
-  let numUserHandOneAces = userHandOne.reduce((aceCount, card) => {
+  let numUserHandOneAces = userHandOne.cards.reduce((aceCount, card) => {
     return card.rank === "A" ? aceCount + 1 : aceCount;
   }, 0);
-  let numUserHandTwoAces = userHandTwo.reduce((aceCount, card) => {
+  let numUserHandTwoAces = userHandTwo.cards.reduce((aceCount, card) => {
     return card.rank === "A" ? aceCount + 1 : aceCount;
   }, 0);
 
-  let dealerNonAces = dealerHand.filter((card) => card.type !== "A");
-  let userHandOneNonAces = userHandOne.filter((card) => card.type !== "A");
-  let userHandTwoNonAces = userHandTwo.filter((card) => card.type !== "A");
+  let dealerNonAces = dealerHand.cards.filter((card) => card.rank !== "A");
+  let userHandOneNonAces = userHandOne.cards.filter(
+    (card) => card.rank !== "A"
+  );
+  let userHandTwoNonAces = userHandTwo.cards.filter(
+    (card) => card.rank !== "A"
+  );
 
   let dealerNonAcesTotal = dealerNonAces.reduce(
     (sum, card) => sum + card.value,
@@ -304,189 +288,243 @@ function updateScore() {
 
   switch (numDealerAces) {
     case 0:
-      score.dealerHand = dealerNonAcesTotal;
+      dealerHand.score = dealerNonAcesTotal;
       break;
     case 1:
       if (dealerNonAcesTotal <= 10) {
-        score.dealerHand = dealerNonAcesTotal + 11;
+        dealerHand.score = dealerNonAcesTotal + 11;
       } else {
-        score.dealerHand = dealerNonAcesTotal + 1;
+        dealerHand.score = dealerNonAcesTotal + 1;
       }
       break;
     case 2: // 10 1 11
       if (dealerNonAcesTotal <= 9) {
-        score.dealerHand = dealerNonAcesTotal + 12;
+        dealerHand.score = dealerNonAcesTotal + 12;
       } else {
-        score.dealerHand = dealerNonAcesTotal + 2;
+        dealerHand.score = dealerNonAcesTotal + 2;
       }
       break;
     case 3:
       if (dealerNonAcesTotal <= 8) {
-        score.dealerHand = dealerNonAcesTotal + 13;
+        dealerHand.score = dealerNonAcesTotal + 13;
       } else {
-        score.dealerHand = dealerNonAcesTotal + 3;
+        dealerHand.score = dealerNonAcesTotal + 3;
       }
       break;
     case 4:
       if (dealerNonAcesTotal <= 7) {
-        score.dealerHand = dealerNonAcesTotal + 14;
+        dealerHand.score = dealerNonAcesTotal + 14;
       } else {
-        score.dealerHand = dealerNonAcesTotal + 4;
+        dealerHand.score = dealerNonAcesTotal + 4;
       }
       break;
   }
 
   switch (numUserHandOneAces) {
     case 0:
-      score.userHandOne = userHandOneNonAcesTotal;
+      userHandOne.score = userHandOneNonAcesTotal;
       break;
     case 1:
       if (userHandOneNonAcesTotal <= 10) {
-        score.userHandOne = userHandOneNonAcesTotal + 11;
+        userHandOne.score = userHandOneNonAcesTotal + 11;
       } else {
-        score.userHandOne = userHandOneNonAcesTotal + 1;
+        userHandOne.score = userHandOneNonAcesTotal + 1;
       }
       break;
     case 2: // 10 1 11
       if (userHandOneNonAcesTotal <= 9) {
-        score.userHandOne = userHandOneNonAcesTotal + 12;
+        userHandOne.score = userHandOneNonAcesTotal + 12;
       } else {
-        score.userHandOne = userHandOneNonAcesTotal + 2;
+        userHandOne.score = userHandOneNonAcesTotal + 2;
       }
       break;
     case 3:
       if (userHandOneNonAcesTotal <= 8) {
-        score.userHandOne = userHandOneNonAcesTotal + 13;
+        userHandOne.score = userHandOneNonAcesTotal + 13;
       } else {
-        score.userHandOne = userHandOneNonAcesTotal + 3;
+        userHandOne.score = userHandOneNonAcesTotal + 3;
       }
       break;
     case 4:
       if (userHandOneNonAcesTotal <= 7) {
-        score.userHandOne = userHandOneNonAcesTotal + 14;
+        userHandOne.score = userHandOneNonAcesTotal + 14;
       } else {
-        score.userHandOne = userHandOneNonAcesTotal + 4;
+        userHandOne.score = userHandOneNonAcesTotal + 4;
       }
       break;
   }
 
   switch (numUserHandTwoAces) {
     case 0:
-      score.userHandTwo = userHandTwoNonAcesTotal;
+      userHandTwo.score = userHandTwoNonAcesTotal;
       break;
     case 1:
       if (userHandTwoNonAcesTotal <= 10) {
-        score.userHandTwo = userHandTwoNonAcesTotal + 11;
+        userHandTwo.score = userHandTwoNonAcesTotal + 11;
       } else {
-        score.userHandTwo = userHandTwoNonAcesTotal + 1;
+        userHandTwo.score = userHandTwoNonAcesTotal + 1;
       }
       break;
     case 2: // 10 1 11
       if (userHandTwoNonAcesTotal <= 9) {
-        score.userHandTwo = userHandTwoNonAcesTotal + 12;
+        userHandTwo.score = userHandTwoNonAcesTotal + 12;
       } else {
-        score.userHandTwo = userHandTwoNonAcesTotal + 2;
+        userHandTwo.score = userHandTwoNonAcesTotal + 2;
       }
       break;
     case 3:
       if (userHandTwoNonAcesTotal <= 8) {
-        score.userHandTwo = userHandTwoNonAcesTotal + 13;
+        userHandTwo.score = userHandTwoNonAcesTotal + 13;
       } else {
-        score.userHandTwo = userHandTwoNonAcesTotal + 3;
+        userHandTwo.score = userHandTwoNonAcesTotal + 3;
       }
       break;
     case 4:
       if (userHandTwoNonAcesTotal <= 7) {
-        score.userHandTwo = userHandTwoNonAcesTotal + 14;
+        userHandTwo.score = userHandTwoNonAcesTotal + 14;
       } else {
-        score.userHandTwo = userHandTwoNonAcesTotal + 4;
+        userHandTwo.score = userHandTwoNonAcesTotal + 4;
       }
       break;
   }
 }
 
 function uiUpdateScore() {
-  userScoreElement.textContent = score.userHandOne;
-  dealerScoreElement.textContent = score.dealerHand;
+  userScoreElementOne.textContent = userHandOne.score;
+  userScoreElementTwo.textContent = userHandTwo.score;
+  dealerScoreElement.textContent = dealerHand.score;
+}
+function uiRemoveCard() {
+  // for when split() is called
+  // kinda hacky state handling ... but it works
+  userHandOneElement.removeChild(userHandOneElement.lastChild);
 }
 
-function hitUser(hand) {
+function uiClearHandTwo() {
+  userHandTwoElement.innerHTML = "";
+  // uiUpdateHand("userHandTwo", userHandTwo[0]);
+}
+
+function hitUser(hand = "userHandOne") {
   dealCard(hand);
   updateScore();
   console.log(score, "inside hitUser");
   uiUpdateScore();
-  if (score.user > 21) {
-    settleGame("lose");
+  if (userHandOne.score > 21) {
+    console.log("inside hitUser when busts - you busted, you lose");
+    settleHand(hand, "lose");
   }
-  doubleDownBtn.disabled = true;
+  doubleDownBtnOne.disabled = true;
   splitBtn.disabled = true;
 }
-function stay() {
-  stayBtn.disabled = true;
-  hitBtn.disabled = true;
-  //   flipDealerCardUp();
-  if (score.dealer === 21 && score.userHandOne === 21) {
-    settleGame("tie");
-  } else if (score.dealer > 21) {
-    settleGame("win");
-  } else if (score.dealer < 17) {
-    dealerHand.push(dealCard("dealer"));
-    updateScore();
-    uiUpdateScore();
 
-    stay();
-  } else if (score.dealer > 16) {
-    if (score.dealer > score.user) {
-      settleGame("lose");
-    } else if (score.dealer === score.user) {
-      settleGame("tie");
-    } else {
-      settleGame("win");
-    }
-  }
+function split() {
+  splitBtn.classList.add("activeChoice");
+  userHandTwo.cards.push(userHandOne.cards.splice(1, 1)[0]);
+  console.log(userHandTwo.cards, "<--userHandTwo in split");
+  console.log(userHandOne.cards, "<--userHandOne in split");
+
+  uiRemoveCard();
+  uiUpdateHand("userHandTwo", userHandTwo.cards[0]);
+  updateScore();
+  uiUpdateScore();
+
+  userHandTwo.isActive = true;
+  splitBtn.disabled = true;
+  hitBtnTwo.disabled = true;
+  stayBtnTwo.disabled = true;
+  doubleDownBtnTwo.disabled = true;
 }
-function doubleDown() {
-  stayBtn.disabled = true;
-  hitBtn.disabled = true;
-  doubleDownBtn.disabled = true;
+function doubleDown(hand = "userHandOne") {
+  if (hand === "userHandOne") {
+    stayBtnOne.disabled = true;
+    doubleDownBtnOne.disabled = true;
+    hitBtnOne.disabled = true;
+  } else if (hand === "userHandTwo") {
+    stayBtnTwo.disabled = true;
+    doubleDownBtnTwo.disabled = true;
+    hitBtnTwo.disabled = true;
+  }
+
   wagerAmount = wagerAmount + wagerAmount;
   wagerElement.innerHTML = wagerAmount;
-  userHandOne.push(dealCard("user"));
+  dealCard(hand);
 
   updateScore();
   uiUpdateScore();
-  stay(); // "doubling down" in live blackjack implies stay logic by default
-}
-function uiRemoveCard() {
-  // kinda hacky state handling ... but it works
-  userHandOneElement.removeChild(userHandOneElement.lastChild);
-}
-function split() {
-  splitBtn.classList.add("activeChoice");
-  userHandTwo.push(userHandOne.splice(1, 1)[0]);
-  console.log(userHandTwo, "<--userHandTwo in split");
-  console.log(userHandOne, "<--userHandOne in split");
-
-  uiRemoveCard();
-  uiUpdateHand("userHandTwo", userHandTwo[0]);
-  splitBtn.disabled = true;
+  stay(hand); // "doubling down" in live blackjack implies stay logic by default
 }
 
-function settleGame(outcome, blackjackMultiplier = 1) {
-  if (outcome === "lose") {
-    bankroll -= wagerAmount;
-    uiOutcomeInterface(outcome);
-  } else if (outcome === "win") {
-    bankroll += wagerAmount * blackjackMultiplier;
-    uiOutcomeInterface(outcome);
+function stay(hand) {
+  if (!userHandTwo.isActive) {
+    settleHand(hand);
   } else {
-    console.log("breaking Even");
-    uiOutcomeInterface(outcome);
+    // UI shifts to userHandTwo
+    // the first if statement is where need to handle hand one staying and waiting for hand two to play out before settling
+    if (hand === "userHandOne") {
+      stayBtnOne.disabled = true;
+      hitBtnOne.disabled = true;
+      stayBtnTwo.disabled = false;
+      hitBtnTwo.disabled = false;
+      // Where we move UI emphasis to userHandTwo and enable buttons for hand two
+    } else if (hand === "userHandTwo") {
+      stayBtnTwo.disabled = true;
+      hitBtnTwo.disabled = true;
+      settleHand("userHandOne");
+      settleHand("userHandTwo");
+      console.log("settleHand at the bottom of stay ran");
+    }
   }
+
+  //   flipDealerCardUp();
+}
+
+function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
+  const userScore =
+    hand === "userHandOne" ? userHandOne.score : userHandTwo.score;
+
+  if (dealerHand.score === 21 && userScore === 21) {
+    console.log("breaking Even");
+    uiOutcomeInterface("Push");
+  } else if (dealerHand.score > 21 && userScore <= 21) {
+    bankroll += wagerAmount * blackjackMultiplier;
+    uiOutcomeInterface("You Win");
+  } else if (dealerHand.score < 17) {
+    while (dealerHand.score < 17) {
+      dealCard("dealer");
+      updateScore();
+      uiUpdateScore();
+    }
+    if (dealerHand.score > 21) {
+      bankroll += wagerAmount * blackjackMultiplier;
+      uiOutcomeInterface("you win");
+    } else if (dealerHand.score > userScore) {
+      bankroll -= wagerAmount;
+      uiOutcomeInterface("You Lose");
+    } else if (dealerHand.score === userScore) {
+      console.log("breaking Even");
+      uiOutcomeInterface("Push");
+    } else {
+      bankroll += wagerAmount * blackjackMultiplier;
+      uiOutcomeInterface("You Win");
+    }
+    // settleHand();
+  } else if (dealerHand.score >= 17) {
+    if (dealerHand.score > userScore) {
+      bankroll -= wagerAmount;
+    } else if (dealerHand.score === userScore) {
+      settleHand(hand, "tie");
+    } else {
+      bankroll += wagerAmount * blackjackMultiplier;
+    }
+  }
+
   bankrollElement.innerHTML = bankroll;
   console.log(bankroll);
   // disable buttons here, then re-enable on newHand();
   splitBtn.disabled = true;
+
+  console.log("settleHand at the bottom of settleHand");
 }
 
 function uiOutcomeInterface(outcome) {
