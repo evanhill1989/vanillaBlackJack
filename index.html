@@ -8,120 +8,61 @@
   </head>
   <body>
     <main>
-      <div class="container">
-        <div><button onclick="newHand()">New Hand</button></div>
-        <div class="game-board">
-          <h3>Dealer Hand</h3>
-          <div id="dealer-board">
+      <div><button onclick="newHand()">New Hand</button></div>
+      <div class="game-board">
+        <div id="dealer-board">
+          <div class="hand-container">
             <div class="hand" id="dealer-hand"></div>
-
-            <div class="score">
-              <h4>Dealer Score:</h4>
-              <div id="dealer_score"></div>
-            </div>
           </div>
 
-          <div>
-            <h3>Your Hand</h3>
-            <div id="user-board">
-                <div class="hand-container-one">
-                  
-                  <div class="hand" id="user-hand-one"></div>
-                  <div class="button-container">
-                  <button id="hit-btn-handOne" onClick="hitUser('userHandOne')">
-                    Hit
-                  </button>
-                  <button id="stay-btn-handOne" onClick="stay('userHandOne')">Stay</button>
-                  <button id="doubledown-btn-handOne" onClick="doubleDown('userHandOne')" disabled>
-                    Double Down
-                  </button>
-                  <button id="split-btn" onClick="split()">Split</button>
-                  </div>
-                  <div class="score">
-                    <h4>User Hand One Score:</h4>
-                    <div id="user_score-one"></div>
-                  </div>
-                </div>
-                
-                <div class="hand-container-two">
-                  <div class="hand" id="user-hand-two">
-                  
-                  </div>
-                  <div class="button-container">
-                    <button id="hit-btn-handTwo" onClick="hitUser('userHandTwo')" disabled>
-                      Hit
-                    </button>
-                    <button id="stay-btn-handTwo" onClick="stay('userHandTwo')" disabled>Stay</button>
-                    <button id="doubledown-btn-handTwo" onClick="doubleDown(userHandTwo)" disabled>
-                      Double Down
-                    </button>
-                  </div>
-                  <div class="score">
-                    <h4>User Hand Two Score:</h4>
-                    <div id="user_score-two"></div>
-                  </div>
-                </div>
-                
-               
-                <div class="action-container" id="action-container"></div>
-              
-            </div>
+          <div class="score dealer-score">
+            <h4>DealerScore</h4>
+            <span id="dealer_score"></span>
           </div>
         </div>
 
-        <div id="player_interface">
-          <div>
-            <div class="wager">
-              <h4 id="wager_amount">Wager:</h4>
-              <input type="text" />
-              <div></div>
-            </div>
-            <button onClick="wager()">Lock in wager</button>
+        <div class="actions-wager">
+          <button
+            class="btn-action"
+            id="hit-btn"
+            onClick="hitUser('userHandOne')"
+          >
+            Hit
+          </button>
+          <div id="wager">
+            <button
+              id="doubledown-btn-handOne"
+              onClick="doubleDown('userHandOne')"
+              disabled
+            >
+              Double Down
+            </button>
+            Wager: $<span id="wager_amount"></span>
+          </div>
+          <button
+            class="btn-action"
+            id="stay-btn"
+            onClick="stay('userHandOne')"
+          >
+            Stay
+          </button>
+          <!-- <button id="split-btn" onClick="split()">Split</button> -->
+        </div>
+
+        <div id="user-board">
+          <div class="hand-container">
+            <div class="hand" id="user-hand-one"></div>
+          </div>
+          <div class="score user-score">
+            <h4>UserScore</h4>
+            <span id="user_score"></span>
           </div>
         </div>
-        <div >
-          <h3 id="outcome_interface""></h3>
-        </div>
-        <div>
-          <h3>Bankroll: $<span id="bankroll"></span></h3>
-        </div>
-        <!--   <div>
-          <button onClick="wager()">Lock in wager</button>
-           
-        </div> -->
       </div>
+
+      <h3 class="bankroll">Bankroll: $<span id="bankroll"></span></h3>
     </main>
 
     <script src="script.js"></script>
   </body>
 </html>
-
-<!-- 
-<button id="hit-btn" onClick="hitUser('userHandOne')">
-  Hit
-</button>
-<button id="stay-btn" onClick="stay()">Stay</button>
-<button id="doubledown-btn" onClick="doubleDown()" disabled>
-  Double Down
-</button>
-<button id="split-btn" onClick="split()" disabled>Split</button> -->
-
-<!-- <div id="user-hand-two">
-              
-                <div class="hand_interface">
-                  <div>
-                    <div class="score">
-                      <h4>User Score:</h4>
-                      <div id="user_score"></div>
-                    </div>
-                    <button id="hit-btn" onClick="hitUser()">Hit</button>
-                    <button id="stay-btn" onClick="stay()">Stay</button>
-                    <button id="doubledown-btn" onClick="doubleDown()" disabled>
-                      Double Down
-                    </button>
-                    <button id="split-btn" onClick="split()" disabled>
-                      Split
-                    </button>
-                  </div>
-                </div>
-              </div> -->

@@ -56,7 +56,25 @@ const deckStart = [
   { rank: "A", value: 0, suitEmoji: "♤", suit: "spades" },
 ];
 
-//NEXT STEP -- Natural blackjack still didn't work!!!!
+//NEXT STEP -- Stay should just be simpler and generic enough to just take userScore as param
+// Refactor to handle which userHand as prop for more generic functions...
+/* UI functions List:
+  -- user blackjack banner
+  -- dealer blackjack banner
+  -- hide UI 
+  -- realistic dealing
+      *- setTimeout() for dealing 1 card at a time
+      *- animate card from deck to hand
+
+  -- outcome UI
+      *- banner for dealer bust
+      *- banner for win or lose
+      *- fade out completed hand in background
+  -- wager UI 
+
+  -- 
+
+*/
 
 const deck = [...deckStart];
 
@@ -67,8 +85,8 @@ const userBoardElement = document.getElementById("user-board");
 const userHandOneElement = document.getElementById("user-hand-one");
 const userHandTwoElement = document.getElementById("user-hand-two");
 const dealerHandElement = document.getElementById("dealer-hand");
-const userScoreElementOne = document.getElementById("user_score-one");
-const userScoreElementTwo = document.getElementById("user_score-two");
+const userScoreElement = document.getElementById("user_score");
+
 const dealerScoreElement = document.getElementById("dealer_score");
 const outcomeInterface = document.getElementById("outcome_interface");
 const actionInterface = document.getElementById("action-container");
@@ -113,12 +131,6 @@ const userHandOne = hands.userHandOne;
 const userHandTwo = hands.userHandTwo; // Will only have a "userHandTwo" after split() -- function for splitting a pair
 const dealerHand = hands.dealerHand;
 
-const score = {
-  dealerHand: 0,
-  userHandOne: 0,
-  userHandTwo: 0,
-};
-
 function updateRemainingDeck(card) {
   const cardPositionInDeck = deck.indexOf(card);
 
@@ -130,9 +142,9 @@ function dealCard(hand, staticCardForTesting) {
   if (hand === "userHandOne") {
     userHandOne.cards.push(staticCardForTesting || randomCard);
   } else if (hand === "userHandTwo") {
-    userHandTwo.cards.push(randomCard);
+    userHandTwo.cards.push(staticCardForTesting || randomCard);
   } else {
-    dealerHand.cards.push(randomCard);
+    dealerHand.cards.push(staticCardForTesting || randomCard);
   }
   updateRemainingDeck(staticCardForTesting || randomCard);
   uiUpdateHand(hand, staticCardForTesting || randomCard);
@@ -179,18 +191,12 @@ function uiCreateCard(hand, card) {
 }
 
 function checkForBlackjack() {
-  console.log(
-    userHandOne.score,
-    "user score in checkforblackjack",
-    dealerHand.score,
-    "dealer score in checkforblackjack"
-  );
   if (userHandOne.score === 21 && dealerHand.score !== 21) {
     console.log("Congrats on BlackJack!");
     settleHand(userHandOne, 1.5);
   }
   if (userHandOne.score === 21 && dealerHand.score === 21) {
-    settleHand(userHandOne);
+    settleHand(userHandOne, 0);
   }
   if (userHandOne.score !== 21 && dealerHand.score === 21) {
     settleHand(userHandOne);
@@ -198,18 +204,8 @@ function checkForBlackjack() {
 }
 
 function dealNewHand() {
-  dealCard("userHandOne", {
-    rank: "A",
-    value: 11,
-    suitEmoji: "♡",
-    suit: "hearts",
-  });
-  dealCard("userHandOne", {
-    rank: "K",
-    value: 10,
-    suitEmoji: "♡",
-    suit: "hearts",
-  });
+  dealCard("userHandOne");
+  dealCard("userHandOne");
 
   dealCard("dealerHand");
   dealCard("dealerHand");
@@ -218,20 +214,6 @@ function dealNewHand() {
   uiUpdateScore();
 
   checkForBlackjack();
-
-  // checkForBlackjack();
-
-  // uiCreateActionBtns("userHandOne");
-
-  // const firstCard = userHandOne[0].value;
-  // const secondCard = userHandOne[1].value;
-
-  // if (firstCard !== secondCard) {
-  //   splitBtn.disabled = false;
-  // }
-  if (userHandOne.score >= 9 && userHandOne.score <= 11) {
-    doubleDownBtnOne.disabled = false;
-  }
 }
 
 function newHand() {
@@ -414,10 +396,10 @@ function updateScore() {
 }
 
 function uiUpdateScore() {
-  userScoreElementOne.textContent = userHandOne.score;
-  userScoreElementTwo.textContent = userHandTwo.score;
+  userScoreElement.textContent = userHandOne.score;
   dealerScoreElement.textContent = dealerHand.score;
 }
+
 function uiRemoveCard() {
   // for when split() is called
   // kinda hacky state handling ... but it works
@@ -432,14 +414,12 @@ function uiClearHandTwo() {
 function hitUser(hand = "userHandOne") {
   dealCard(hand);
   updateScore();
-  console.log(score, "inside hitUser");
+  console.log(dealerHand.score, "dealerScore inside hitUser");
   uiUpdateScore();
   if (userHandOne.score > 21) {
     console.log("inside hitUser when busts - you busted, you lose");
     settleHand(hand, "lose");
   }
-  doubleDownBtnOne.disabled = true;
-  splitBtn.disabled = true;
 }
 
 function split() {
@@ -481,26 +461,8 @@ function doubleDown(hand = "userHandOne") {
 }
 
 function stay(hand) {
-  if (!userHandTwo.isActive) {
-    dealerAction();
-  } else {
-    // UI shifts to userHandTwo
-    // the first if statement is where need to handle hand one staying and waiting for hand two to play out before settling
-    if (hand === "userHandOne") {
-      stayBtnOne.disabled = true;
-      hitBtnOne.disabled = true;
-      stayBtnTwo.disabled = false;
-      hitBtnTwo.disabled = false;
-      // Where we move UI emphasis to userHandTwo and enable buttons for hand two
-    } else if (hand === "userHandTwo") {
-      stayBtnTwo.disabled = true;
-      hitBtnTwo.disabled = true;
-      dealerAction();
-      console.log("settleHand at the bottom of stay ran");
-    }
-  }
-
   //   flipDealerCardUp();
+  dealerAction();
 }
 
 function dealerAction() {
@@ -511,7 +473,17 @@ function dealerAction() {
   settleHand();
 }
 
-function compareScores(userScore) {
+function compareScores(userScore, blackjackMultiplier) {
+  console.log(
+    "dealer Score in compare scores(inside settleHand()):",
+    dealerHand.score
+  );
+  if (blackjackMultiplier === 1.5) {
+    return "win";
+  }
+  if (blackjackMultiplier === 0) {
+    return "push";
+  }
   if (userScore > 21) {
     console.log("bust");
     return "lose";
@@ -536,12 +508,13 @@ function compareScores(userScore) {
 function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
   const userScore =
     hand === "userHandOne" ? userHandOne.score : userHandTwo.score;
-  const outcome = compareScores(userScore);
+  const outcome = compareScores(userScore, blackjackMultiplier);
 
   if (outcome === "push") {
     console.log("push");
     uiOutcomeInterface("Push");
   } else if (outcome === "win") {
+    console.log("Outcome = win in if statement from settleHand()");
     bankroll += wagerAmount * blackjackMultiplier;
     uiOutcomeInterface("You Win");
   } else if (outcome === "lose") {
@@ -551,51 +524,14 @@ function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
   }
 
   bankrollElement.innerHTML = bankroll;
-  console.log(bankroll);
-  // disable buttons here, then re-enable on newHand();
-  splitBtn.disabled = true;
-
-  console.log("settleHand at the bottom of settleHand");
+  // UI function for transition between hands view Outcome summary
+  // UI function to clear away boards transition
+  // UI function to set wager
+  // UI function to choose deal new hand
 }
 
-// USED TO BE IN settleHand()
-// if (dealerHand.score === 21 && userScore === 21) {
-//   console.log("breaking Even");
-//   uiOutcomeInterface("Push");
-// } else if (dealerHand.score > 21 && userScore <= 21) {
-//   bankroll += wagerAmount * blackjackMultiplier;
-//   uiOutcomeInterface("You Win");
-// } else if (dealerHand.score < 17) {
-//   while (dealerHand.score < 17) {
-//     dealCard("dealer");
-//     updateScore();
-//     uiUpdateScore();
-//   }
-//   if (dealerHand.score > 21) {
-//     bankroll += wagerAmount * blackjackMultiplier;
-//     uiOutcomeInterface("you win");
-//   } else if (dealerHand.score > userScore) {
-//     bankroll -= wagerAmount;
-//     uiOutcomeInterface("You Lose");
-//   } else if (dealerHand.score === userScore) {
-//     console.log("breaking Even");
-//     uiOutcomeInterface("Push");
-//   } else {
-//     bankroll += wagerAmount * blackjackMultiplier;
-//     uiOutcomeInterface("You Win");
-//   }
-//   // settleHand();
-// } else if (dealerHand.score >= 17) {
-//   if (dealerHand.score > userScore) {
-//     bankroll -= wagerAmount;
-//   } else if (dealerHand.score === userScore) {
-//     settleHand(hand, "tie");
-//   } else {
-//     bankroll += wagerAmount * blackjackMultiplier;
-//   }
-
 function uiOutcomeInterface(outcome) {
-  outcomeInterface.innerHTML = `You ${outcome}`;
+  // console.log("Outcome inside uiOutcomeInterface:", outcome);
 }
 
 dealNewHand();
