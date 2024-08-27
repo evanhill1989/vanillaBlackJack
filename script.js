@@ -56,6 +56,8 @@ const deckStart = [
   { rank: "A", value: 0, suitEmoji: "♤", suit: "spades" },
 ];
 
+//NEXT STEP -- Natural blackjack still didn't work!!!!
+
 const deck = [...deckStart];
 
 let bankroll = 1000;
@@ -75,7 +77,6 @@ const bankrollElement = document.getElementById("bankroll");
 
 const splitBtn = document.getElementById("split-btn");
 
-//NEXT STEP -- Natural blackjack didn't work
 const hitBtnOne = document.getElementById("hit-btn-handOne");
 const stayBtnOne = document.getElementById("stay-btn-handOne");
 const doubleDownBtnOne = document.getElementById("doubledown-btn-handOne");
@@ -124,17 +125,17 @@ function updateRemainingDeck(card) {
   deck.splice(cardPositionInDeck, 1);
 }
 
-function dealCard(hand) {
+function dealCard(hand, staticCardForTesting) {
   const randomCard = deck[Math.ceil(Math.random() * deck.length) - 1];
   if (hand === "userHandOne") {
-    userHandOne.cards.push(randomCard);
+    userHandOne.cards.push(staticCardForTesting || randomCard);
   } else if (hand === "userHandTwo") {
     userHandTwo.cards.push(randomCard);
   } else {
     dealerHand.cards.push(randomCard);
   }
-  updateRemainingDeck(randomCard);
-  uiUpdateHand(hand, randomCard);
+  updateRemainingDeck(staticCardForTesting || randomCard);
+  uiUpdateHand(hand, staticCardForTesting || randomCard);
 }
 
 function uiUpdateHand(hand, card) {
@@ -177,9 +178,38 @@ function uiCreateCard(hand, card) {
   }
 }
 
-function initialDeal() {
-  dealCard("userHandOne");
-  dealCard("userHandOne");
+function checkForBlackjack() {
+  console.log(
+    userHandOne.score,
+    "user score in checkforblackjack",
+    dealerHand.score,
+    "dealer score in checkforblackjack"
+  );
+  if (userHandOne.score === 21 && dealerHand.score !== 21) {
+    console.log("Congrats on BlackJack!");
+    settleHand(userHandOne, 1.5);
+  }
+  if (userHandOne.score === 21 && dealerHand.score === 21) {
+    settleHand(userHandOne);
+  }
+  if (userHandOne.score !== 21 && dealerHand.score === 21) {
+    settleHand(userHandOne);
+  }
+}
+
+function dealNewHand() {
+  dealCard("userHandOne", {
+    rank: "A",
+    value: 11,
+    suitEmoji: "♡",
+    suit: "hearts",
+  });
+  dealCard("userHandOne", {
+    rank: "K",
+    value: 10,
+    suitEmoji: "♡",
+    suit: "hearts",
+  });
 
   dealCard("dealerHand");
   dealCard("dealerHand");
@@ -187,18 +217,11 @@ function initialDeal() {
   updateScore();
   uiUpdateScore();
 
-  // uiCreateActionBtns("userHandOne");
+  checkForBlackjack();
 
-  if (score.userHandOne === 21 && score.dealerHand !== 21) {
-    console.log("Congrats on BlackJack!");
-    settleHand(userHandOne, "win", 1.5);
-  }
-  if (score.userHandOne === 21 && score.dealerHand === 21) {
-    settleHand(userHandOne, "tie");
-  }
-  if (score.userHandOne !== 21 && score.dealerHand === 21) {
-    settleHand(userHandOne, "lose");
-  }
+  // checkForBlackjack();
+
+  // uiCreateActionBtns("userHandOne");
 
   // const firstCard = userHandOne[0].value;
   // const secondCard = userHandOne[1].value;
@@ -206,7 +229,7 @@ function initialDeal() {
   // if (firstCard !== secondCard) {
   //   splitBtn.disabled = false;
   // }
-  if (score.userHandOne >= 9 && score.userHandOne <= 11) {
+  if (userHandOne.score >= 9 && userHandOne.score <= 11) {
     doubleDownBtnOne.disabled = false;
   }
 }
@@ -238,17 +261,18 @@ function newHand() {
   deck.splice(0, deck.length);
   deck.push(...deckStart);
 
-  wager = 0;
+  wagerAmount = 0;
   userHandOneElement.innerHTML = "";
   dealerHandElement.innerHTML = "";
   outcomeInterface.innerHTML = "";
   stayBtnOne.disabled = false;
 
   hitBtnOne.disabled = false;
+  doubleDownBtnOne.disabled = true;
 
   uiClearHandTwo();
   splitBtn.disabled = false;
-  initialDeal();
+  dealNewHand();
 }
 
 function updateScore() {
@@ -440,6 +464,7 @@ function doubleDown(hand = "userHandOne") {
     stayBtnOne.disabled = true;
     doubleDownBtnOne.disabled = true;
     hitBtnOne.disabled = true;
+    splitBtn.disabled = true;
   } else if (hand === "userHandTwo") {
     stayBtnTwo.disabled = true;
     doubleDownBtnTwo.disabled = true;
@@ -457,7 +482,7 @@ function doubleDown(hand = "userHandOne") {
 
 function stay(hand) {
   if (!userHandTwo.isActive) {
-    settleHand(hand);
+    dealerAction();
   } else {
     // UI shifts to userHandTwo
     // the first if statement is where need to handle hand one staying and waiting for hand two to play out before settling
@@ -470,8 +495,7 @@ function stay(hand) {
     } else if (hand === "userHandTwo") {
       stayBtnTwo.disabled = true;
       hitBtnTwo.disabled = true;
-      settleHand("userHandOne");
-      settleHand("userHandTwo");
+      dealerAction();
       console.log("settleHand at the bottom of stay ran");
     }
   }
@@ -479,44 +503,51 @@ function stay(hand) {
   //   flipDealerCardUp();
 }
 
+function dealerAction() {
+  while (dealerHand.score < 17) {
+    dealCard("dealerHand");
+    updateScore();
+  }
+  settleHand();
+}
+
+function compareScores(userScore) {
+  if (userScore > 21) {
+    console.log("bust");
+    return "lose";
+  } else if (dealerHand.score > 21) {
+    console.log("dealer bust");
+    return "win";
+  } else if (userScore > dealerHand.score) {
+    console.log("win");
+    return "win";
+  } else if (userScore < dealerHand.score) {
+    console.log("lose");
+    return "lose";
+  } else if (userScore === dealerHand.score) {
+    console.log("push");
+    return "push";
+  } else {
+    console.error("error in compareScores");
+    return "error";
+  }
+}
+
 function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
   const userScore =
     hand === "userHandOne" ? userHandOne.score : userHandTwo.score;
+  const outcome = compareScores(userScore);
 
-  if (dealerHand.score === 21 && userScore === 21) {
-    console.log("breaking Even");
+  if (outcome === "push") {
+    console.log("push");
     uiOutcomeInterface("Push");
-  } else if (dealerHand.score > 21 && userScore <= 21) {
+  } else if (outcome === "win") {
     bankroll += wagerAmount * blackjackMultiplier;
     uiOutcomeInterface("You Win");
-  } else if (dealerHand.score < 17) {
-    while (dealerHand.score < 17) {
-      dealCard("dealer");
-      updateScore();
-      uiUpdateScore();
-    }
-    if (dealerHand.score > 21) {
-      bankroll += wagerAmount * blackjackMultiplier;
-      uiOutcomeInterface("you win");
-    } else if (dealerHand.score > userScore) {
-      bankroll -= wagerAmount;
-      uiOutcomeInterface("You Lose");
-    } else if (dealerHand.score === userScore) {
-      console.log("breaking Even");
-      uiOutcomeInterface("Push");
-    } else {
-      bankroll += wagerAmount * blackjackMultiplier;
-      uiOutcomeInterface("You Win");
-    }
-    // settleHand();
-  } else if (dealerHand.score >= 17) {
-    if (dealerHand.score > userScore) {
-      bankroll -= wagerAmount;
-    } else if (dealerHand.score === userScore) {
-      settleHand(hand, "tie");
-    } else {
-      bankroll += wagerAmount * blackjackMultiplier;
-    }
+  } else if (outcome === "lose") {
+    // user loses
+    bankroll -= wagerAmount;
+    uiOutcomeInterface("You Lose");
   }
 
   bankrollElement.innerHTML = bankroll;
@@ -527,8 +558,44 @@ function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
   console.log("settleHand at the bottom of settleHand");
 }
 
+// USED TO BE IN settleHand()
+// if (dealerHand.score === 21 && userScore === 21) {
+//   console.log("breaking Even");
+//   uiOutcomeInterface("Push");
+// } else if (dealerHand.score > 21 && userScore <= 21) {
+//   bankroll += wagerAmount * blackjackMultiplier;
+//   uiOutcomeInterface("You Win");
+// } else if (dealerHand.score < 17) {
+//   while (dealerHand.score < 17) {
+//     dealCard("dealer");
+//     updateScore();
+//     uiUpdateScore();
+//   }
+//   if (dealerHand.score > 21) {
+//     bankroll += wagerAmount * blackjackMultiplier;
+//     uiOutcomeInterface("you win");
+//   } else if (dealerHand.score > userScore) {
+//     bankroll -= wagerAmount;
+//     uiOutcomeInterface("You Lose");
+//   } else if (dealerHand.score === userScore) {
+//     console.log("breaking Even");
+//     uiOutcomeInterface("Push");
+//   } else {
+//     bankroll += wagerAmount * blackjackMultiplier;
+//     uiOutcomeInterface("You Win");
+//   }
+//   // settleHand();
+// } else if (dealerHand.score >= 17) {
+//   if (dealerHand.score > userScore) {
+//     bankroll -= wagerAmount;
+//   } else if (dealerHand.score === userScore) {
+//     settleHand(hand, "tie");
+//   } else {
+//     bankroll += wagerAmount * blackjackMultiplier;
+//   }
+
 function uiOutcomeInterface(outcome) {
   outcomeInterface.innerHTML = `You ${outcome}`;
 }
 
-initialDeal();
+dealNewHand();
