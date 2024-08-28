@@ -110,6 +110,9 @@ const hitBtnTwo = document.getElementById("hit-btn-handTwo");
 const stayBtnTwo = document.getElementById("stay-btn-handTwo");
 const doubleDownBtnTwo = document.getElementById("doubledown-btn-handTwo");
 
+const outcomeElement = document.getElementyById("outcome");
+const outcomeMessageElement = document.getElementById("outcome-message");
+
 wagerInput.addEventListener("", (event) => {
   wagerElement.innerHTML = wagerAmount;
 });
@@ -522,13 +525,25 @@ function compareScores(userScore, blackjackMultiplier) {
   }
 }
 
+function bankrollUpdate(outcome, blackjackMultiplier) {
+  if (outcome === "win") {
+    bankroll += wagerAmount * blackjackMultiplier;
+  } else if (outcome === "lose") {
+    bankroll -= wagerAmount;
+  } else if (outcome === "push") {
+    bankroll += wagerAmount;
+  } else {
+    console.error("error in bankrollUpdate");
+  }
+}
+
 function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
   const userScore =
     hand === "userHandOne" ? userHandOne.score : userHandTwo.score;
   const outcome = compareScores(userScore, blackjackMultiplier);
-
-  const numWagerAmount = parseInt(wagerAmount);
-
+  // do i want the bankroll logic so entwined with UI logic?
+  bankrollUpdate(outcome, blackjackMultiplier);
+  uiOutcomeInterface(outcome);
   if (outcome === "push") {
     console.log("push");
     uiOutcomeInterface("Push");
