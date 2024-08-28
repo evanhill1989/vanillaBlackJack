@@ -8,8 +8,16 @@
   </head>
   <body>
     <main>
-      <div><button onclick="newHand()">New Hand</button></div>
-      <div class="game-board">
+      <div class="initial-wager" id="initial-wager">
+        <form onsubmit="dealNewHand(event)">
+          <label for="wager-input">Wager Amount</label>
+          <input type="number" id="wager-input" name="wager-input" />
+          <button type="submit">New Hand</button>
+        </form>
+        <h3 class="">Available Bankroll: $<span id="bankroll"></span></h3>
+      </div>
+
+      <div class="hidden" id="game-board">
         <div id="dealer-board">
           <div class="hand-container">
             <div class="hand" id="dealer-hand"></div>
@@ -20,6 +28,7 @@
             <span id="dealer_score"></span>
           </div>
         </div>
+        s
 
         <div class="actions-wager">
           <button
@@ -51,7 +60,7 @@
 
         <div id="user-board">
           <div class="hand-container">
-            <div class="hand" id="user-hand-one"></div>
+            <div class="hand" id="user-hand"></div>
           </div>
           <div class="score user-score">
             <h4>UserScore</h4>
@@ -60,7 +69,9 @@
         </div>
       </div>
 
-      <h3 class="bankroll">Bankroll: $<span id="bankroll"></span></h3>
+      <div id="outcome-interface"></div>
+
+      <h3 class="bankroll">Bankroll: $<span id="bankroll_tab"></span></h3>
     </main>
 
     <script src="script.js"></script>

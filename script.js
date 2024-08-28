@@ -82,16 +82,23 @@ let bankroll = 1000;
 let wagerAmount = 100;
 
 const userBoardElement = document.getElementById("user-board");
-const userHandOneElement = document.getElementById("user-hand-one");
+const userHandOneElement = document.getElementById("user-hand");
 const userHandTwoElement = document.getElementById("user-hand-two");
 const dealerHandElement = document.getElementById("dealer-hand");
 const userScoreElement = document.getElementById("user_score");
 
 const dealerScoreElement = document.getElementById("dealer_score");
-const outcomeInterface = document.getElementById("outcome_interface");
+const outcomeInterface = document.getElementById("outcome-interface");
 const actionInterface = document.getElementById("action-container");
 const wagerElement = document.getElementById("wager_amount");
+
+const initialWager = document.getElementById("initial-wager");
+const gameBoard = document.getElementById("game-board");
+
 const bankrollElement = document.getElementById("bankroll");
+const bankrollTab = document.getElementById("bankroll_tab");
+
+const wagerInput = document.getElementById("wager-input");
 
 const splitBtn = document.getElementById("split-btn");
 
@@ -103,12 +110,15 @@ const hitBtnTwo = document.getElementById("hit-btn-handTwo");
 const stayBtnTwo = document.getElementById("stay-btn-handTwo");
 const doubleDownBtnTwo = document.getElementById("doubledown-btn-handTwo");
 
+wagerInput.addEventListener("", (event) => {
+  wagerElement.innerHTML = wagerAmount;
+});
+
 bankrollElement.innerHTML = bankroll;
+bankrollTab.innerHTML = bankroll;
 
 // Isolate play while "splitting" --
 
-// it would almost be nice just to have methods directly attached to my hands objects... but i don't know exactly how to do that
-// This is why React -- if changing hands state, just directly changed UI this would all be so much easier
 const hands = {
   dealerHand: {
     cards: [],
@@ -130,6 +140,38 @@ const hands = {
 const userHandOne = hands.userHandOne;
 const userHandTwo = hands.userHandTwo; // Will only have a "userHandTwo" after split() -- function for splitting a pair
 const dealerHand = hands.dealerHand;
+
+function dealNewHand(event) {
+  if (event) {
+    event.preventDefault();
+  }
+  console.log(event);
+  wagerAmount = event.target[0].value;
+  const numWagerAmount = parseInt(wagerAmount);
+  console.log(numWagerAmount, "wagerAmount inside dealNewHand()");
+  initialWager.classList.remove("initial-wager");
+  initialWager.classList.add("hidden");
+  gameBoard.classList.remove("hidden");
+  gameBoard.classList.add("game-board");
+  dealCard("userHandOne");
+  dealCard("userHandOne");
+
+  dealCard("dealerHand");
+  dealCard("dealerHand");
+
+  updateScore();
+  uiUpdateScore();
+
+  checkForBlackjack();
+}
+
+function uiTransitionToWager() {
+  // the UI inside will contain the deal button which will call the dealNewHand function
+
+  initialWager.classList.remove("hidden");
+  initialWager.classList.add("initial-wager");
+  resetHand();
+}
 
 function updateRemainingDeck(card) {
   const cardPositionInDeck = deck.indexOf(card);
@@ -203,20 +245,7 @@ function checkForBlackjack() {
   }
 }
 
-function dealNewHand() {
-  dealCard("userHandOne");
-  dealCard("userHandOne");
-
-  dealCard("dealerHand");
-  dealCard("dealerHand");
-
-  updateScore();
-  uiUpdateScore();
-
-  checkForBlackjack();
-}
-
-function newHand() {
+function resetHand(wagerAmount) {
   // This is gross and temporary
   // Really i need to dump const userHandOne
 
@@ -243,18 +272,9 @@ function newHand() {
   deck.splice(0, deck.length);
   deck.push(...deckStart);
 
-  wagerAmount = 0;
   userHandOneElement.innerHTML = "";
   dealerHandElement.innerHTML = "";
   outcomeInterface.innerHTML = "";
-  stayBtnOne.disabled = false;
-
-  hitBtnOne.disabled = false;
-  doubleDownBtnOne.disabled = true;
-
-  uiClearHandTwo();
-  splitBtn.disabled = false;
-  dealNewHand();
 }
 
 function updateScore() {
@@ -406,11 +426,6 @@ function uiRemoveCard() {
   userHandOneElement.removeChild(userHandOneElement.lastChild);
 }
 
-function uiClearHandTwo() {
-  userHandTwoElement.innerHTML = "";
-  // uiUpdateHand("userHandTwo", userHandTwo[0]);
-}
-
 function hitUser(hand = "userHandOne") {
   dealCard(hand);
   updateScore();
@@ -462,6 +477,7 @@ function doubleDown(hand = "userHandOne") {
 
 function stay(hand) {
   //   flipDealerCardUp();
+
   dealerAction();
 }
 
@@ -469,6 +485,7 @@ function dealerAction() {
   while (dealerHand.score < 17) {
     dealCard("dealerHand");
     updateScore();
+    uiUpdateScore();
   }
   settleHand();
 }
@@ -510,20 +527,25 @@ function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
     hand === "userHandOne" ? userHandOne.score : userHandTwo.score;
   const outcome = compareScores(userScore, blackjackMultiplier);
 
+  const numWagerAmount = parseInt(wagerAmount);
+
   if (outcome === "push") {
     console.log("push");
     uiOutcomeInterface("Push");
   } else if (outcome === "win") {
     console.log("Outcome = win in if statement from settleHand()");
-    bankroll += wagerAmount * blackjackMultiplier;
+    bankroll += numWagerAmount * blackjackMultiplier;
     uiOutcomeInterface("You Win");
   } else if (outcome === "lose") {
     // user loses
-    bankroll -= wagerAmount;
+    bankroll -= numWagerAmount;
     uiOutcomeInterface("You Lose");
   }
 
   bankrollElement.innerHTML = bankroll;
+  bankrollTab.innerHTML = bankroll;
+
+  uiTransitionToWager();
   // UI function for transition between hands view Outcome summary
   // UI function to clear away boards transition
   // UI function to set wager
@@ -534,4 +556,7 @@ function uiOutcomeInterface(outcome) {
   // console.log("Outcome inside uiOutcomeInterface:", outcome);
 }
 
-dealNewHand();
+// setWager();
+
+// it would almost be nice just to have methods directly attached to my hands objects... but i don't know exactly how to do that
+// This is why React -- if changing hands state, just directly changed UI this would all be so much easier
