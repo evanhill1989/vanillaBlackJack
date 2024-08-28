@@ -81,6 +81,9 @@ const deck = [...deckStart];
 let bankroll = 1000;
 let wagerAmount = 100;
 
+const outcomeElement = document.getElementById("outcome");
+const outcomeMessageElement = document.getElementById("outcome-message");
+
 const userBoardElement = document.getElementById("user-board");
 const userHandOneElement = document.getElementById("user-hand");
 const userHandTwoElement = document.getElementById("user-hand-two");
@@ -109,9 +112,6 @@ const doubleDownBtnOne = document.getElementById("doubledown-btn-handOne");
 const hitBtnTwo = document.getElementById("hit-btn-handTwo");
 const stayBtnTwo = document.getElementById("stay-btn-handTwo");
 const doubleDownBtnTwo = document.getElementById("doubledown-btn-handTwo");
-
-const outcomeElement = document.getElementyById("outcome");
-const outcomeMessageElement = document.getElementById("outcome-message");
 
 wagerInput.addEventListener("", (event) => {
   wagerElement.innerHTML = wagerAmount;
@@ -543,23 +543,11 @@ function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
   const outcome = compareScores(userScore, blackjackMultiplier);
   // do i want the bankroll logic so entwined with UI logic?
   bankrollUpdate(outcome, blackjackMultiplier);
-  uiOutcomeInterface(outcome);
-  if (outcome === "push") {
-    console.log("push");
-    uiOutcomeInterface("Push");
-  } else if (outcome === "win") {
-    console.log("Outcome = win in if statement from settleHand()");
-    bankroll += numWagerAmount * blackjackMultiplier;
-    uiOutcomeInterface("You Win");
-  } else if (outcome === "lose") {
-    // user loses
-    bankroll -= numWagerAmount;
-    uiOutcomeInterface("You Lose");
-  }
 
   bankrollElement.innerHTML = bankroll;
   bankrollTab.innerHTML = bankroll;
 
+  uiOutcomeInterface(outcome);
   uiTransitionToWager();
   // UI function for transition between hands view Outcome summary
   // UI function to clear away boards transition
@@ -568,6 +556,12 @@ function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
 }
 
 function uiOutcomeInterface(outcome) {
+  // temporary timed transition ui between current hand and wagering next hand
+  outcomeElement.classList.replace("hidden", "visible");
+  outcomeMessageElement.innerHTML = outcome.toUpperCase();
+  setTimeout(() => {
+    outcomeElement.classList.replace("visible", "hidden");
+  }, 3000);
   // console.log("Outcome inside uiOutcomeInterface:", outcome);
 }
 

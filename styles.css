@@ -187,9 +187,11 @@ main {
   left: 0;
 }
 
+.visible {
+  display: grid;
+}
+
 #outcome {
-  display: none;
-  /* justify-content: center; */
   justify-items: center;
   align-items: center;
   position: fixed;
@@ -208,7 +210,6 @@ main {
 }
 
 #outcome-message {
-  display: none;
   z-index: 100;
   background-color: #000;
   color: white;
