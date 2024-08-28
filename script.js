@@ -103,6 +103,9 @@ const hitBtnTwo = document.getElementById("hit-btn-handTwo");
 const stayBtnTwo = document.getElementById("stay-btn-handTwo");
 const doubleDownBtnTwo = document.getElementById("doubledown-btn-handTwo");
 
+const outcomeElement = document.getElementyById("outcome");
+const outcomeMessageElement = document.getElementById("outcome-message");
+
 bankrollElement.innerHTML = bankroll;
 
 // Isolate play while "splitting" --
@@ -246,14 +249,14 @@ function newHand() {
   wagerAmount = 0;
   userHandOneElement.innerHTML = "";
   dealerHandElement.innerHTML = "";
-  outcomeInterface.innerHTML = "";
-  stayBtnOne.disabled = false;
+  // outcomeInterface.innerHTML = "";
+  // stayBtnOne.disabled = false;
 
-  hitBtnOne.disabled = false;
-  doubleDownBtnOne.disabled = true;
+  // hitBtnOne.disabled = false;
+  // doubleDownBtnOne.disabled = true;
 
-  uiClearHandTwo();
-  splitBtn.disabled = false;
+  // uiClearHandTwo();
+  // splitBtn.disabled = false;
   dealNewHand();
 }
 
@@ -505,11 +508,25 @@ function compareScores(userScore, blackjackMultiplier) {
   }
 }
 
+function bankrollUpdate(outcome, blackjackMultiplier) {
+  if (outcome === "win") {
+    bankroll += wagerAmount * blackjackMultiplier;
+  } else if (outcome === "lose") {
+    bankroll -= wagerAmount;
+  } else if (outcome === "push") {
+    bankroll += wagerAmount;
+  } else {
+    console.error("error in bankrollUpdate");
+  }
+}
+
 function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
   const userScore =
     hand === "userHandOne" ? userHandOne.score : userHandTwo.score;
   const outcome = compareScores(userScore, blackjackMultiplier);
-
+  // do i want the bankroll logic so entwined with UI logic?
+  bankrollUpdate(outcome, blackjackMultiplier);
+  uiOutcomeInterface(outcome);
   if (outcome === "push") {
     console.log("push");
     uiOutcomeInterface("Push");

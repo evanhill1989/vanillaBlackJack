@@ -1,3 +1,18 @@
+What I learned:
+So that's why they wanted a framework to couple UI so tightly with state.
+Imperatively handling state effects on UI is so much more miserable than i thought it would be.
+Doesn't mean i agree that frameworks using magic to remove 100% of the friction are best.
+There are negative tradeoffs even going from vanilla JS to React. So I imagine
+there are negative tradeoffs going from React to Svelte
+
+
+Unanswered questions:
+What's better practice - jamming as much as you can into the HTML and just
+flipping it on or off using CSS in reaction to JS event listeners, or creating UI elements as you need
+them in your JS thread? Your HTML is definitely much more confusing, also there may be a better solution
+in vanilla JS that I didn't think of on my own.
+
+
 House Rules:
 Only 1 split
 
