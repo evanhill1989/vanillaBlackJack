@@ -56,7 +56,7 @@ const deckStart = [
   { rank: "A", value: 0, suitEmoji: "♤", suit: "spades" },
 ];
 
-//NEXT STEP -- Stay should just be simpler and generic enough to just take userScore as param
+//NEXT STEP -- Left off working on hitUser. Reset Hand isn't working at all...
 // Refactor to handle which userHand as prop for more generic functions...
 /* UI functions List:
   -- user blackjack banner
@@ -444,20 +444,40 @@ function uiUpdateScore() {
 }
 
 function hitUser(hand = "userHandOne") {
+  // Need to handle case where split and userHandTwo busts
   dealCard(hand);
   updateScore();
   console.log(dealerHand.score, "dealerScore inside hitUser");
   uiUpdateScore();
   if (userHandOne.score > 21) {
-    console.log("inside hitUser when busts - you busted, you lose");
-    settleHand(hand, "lose");
+    console.log("inside hitUser when busts - using generic . naming");
+    // settleHand(hand, "lose");
   }
 }
 
+function wasSplit() {
+  let split = userHandTwo.length > 0 ? true : false;
+  return split;
+}
+
 function stay(hand) {
+  if (wasSplit() && userHandOne.isActive) {
+    userHandOne.isActive = false;
+    userHandTwo.isActive = true;
+    // switch ui to userHandTwo
+  } else if (wasSplit() && userHandTwo.isActive) {
+    dealerAction();
+    // switch ui back to userHandOne
+    settleHand(userHandOne);
+    // switch ui to userHandTwo
+    settleHand(userHandTwo);
+  } else {
+    dealerAction();
+    settleHand();
+  }
+
   //   flipDealerCardUp();
   // if userHandTwo is active then switch that hand to main UI
-  dealerAction();
 }
 
 function dealerAction() {
@@ -466,7 +486,6 @@ function dealerAction() {
     updateScore();
     uiUpdateScore();
   }
-  settleHand();
 }
 
 function compareScores(userScore, blackjackMultiplier) {
@@ -515,6 +534,7 @@ function bankrollUpdate(outcome, blackjackMultiplier) {
 
 function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
   // Needs work to handle split situation where 2 hands and pause after stay...
+  hand.isActive;
   const userScore =
     hand === "userHandOne" ? userHandOne.score : userHandTwo.score;
   const outcome = compareScores(userScore, blackjackMultiplier);
@@ -524,7 +544,7 @@ function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
   bankrollElement.innerHTML = bankroll;
   bankrollTab.innerHTML = bankroll;
 
-  uiOutcomeInterface(outcome);
+  uiOutcome(outcome);
   uiTransitionToWager();
   // UI function for transition between hands view Outcome summary
   // UI function to clear away boards transition
@@ -532,7 +552,7 @@ function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
   // UI function to choose deal new hand
 }
 
-function uiOutcomeInterface(outcome) {
+function uiOutcome(outcome) {
   // temporary timed transition ui between current hand and wagering next hand
   uiToggleDisplay(outcomeElement);
   outcomeMessageElement.innerHTML = outcome.toUpperCase();
@@ -580,7 +600,7 @@ function resetHand(wagerAmount) {
 
   userHandOneElement.innerHTML = "";
   dealerHandElement.innerHTML = "";
-  outcomeInterface.innerHTML = "";
+  // outcomeInterface.innerHTML = "";
 }
 
 // Utility functions
