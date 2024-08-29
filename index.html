@@ -11,7 +11,7 @@
       <span id="outcome-message"><h2>outcome</h2></span>
     </div>
     <main>
-      <div class="initial-wager" id="initial-wager">
+      <div class="visible" id="initial-wager">
         <form onsubmit="dealNewHand(event)">
           <label for="wager-input">Wager Amount</label>
           <input type="number" id="wager-input" name="wager-input" />
@@ -31,7 +31,6 @@
             <span id="dealer_score"></span>
           </div>
         </div>
-        s
 
         <div class="actions-wager">
           <button
@@ -58,7 +57,6 @@
           >
             Stay
           </button>
-          <!-- <button id="split-btn" onClick="split()">Split</button> -->
         </div>
 
         <div id="user-board">
@@ -71,8 +69,6 @@
           </div>
         </div>
       </div>
-
-      <div id="outcome-interface"></div>
 
       <h3 class="bankroll">Bankroll: $<span id="bankroll_tab"></span></h3>
     </main>

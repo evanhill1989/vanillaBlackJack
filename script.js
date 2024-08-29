@@ -91,7 +91,6 @@ const dealerHandElement = document.getElementById("dealer-hand");
 const userScoreElement = document.getElementById("user_score");
 
 const dealerScoreElement = document.getElementById("dealer_score");
-const outcomeInterface = document.getElementById("outcome-interface");
 const actionInterface = document.getElementById("action-container");
 const wagerElement = document.getElementById("wager_amount");
 
@@ -152,10 +151,8 @@ function dealNewHand(event) {
   wagerAmount = event.target[0].value;
   const numWagerAmount = parseInt(wagerAmount);
   console.log(numWagerAmount, "wagerAmount inside dealNewHand()");
-  initialWager.classList.remove("initial-wager");
-  initialWager.classList.add("hidden");
-  gameBoard.classList.remove("hidden");
-  gameBoard.classList.add("game-board");
+  uiToggleDisplay(initialWager);
+  uiToggleDisplay(gameBoard);
   dealCard("userHandOne");
   dealCard("userHandOne");
 
@@ -166,20 +163,6 @@ function dealNewHand(event) {
   uiUpdateScore();
 
   checkForBlackjack();
-}
-
-function uiTransitionToWager() {
-  // the UI inside will contain the deal button which will call the dealNewHand function
-
-  initialWager.classList.remove("hidden");
-  initialWager.classList.add("initial-wager");
-  resetHand();
-}
-
-function updateRemainingDeck(card) {
-  const cardPositionInDeck = deck.indexOf(card);
-
-  deck.splice(cardPositionInDeck, 1);
 }
 
 function dealCard(hand, staticCardForTesting) {
@@ -195,17 +178,16 @@ function dealCard(hand, staticCardForTesting) {
   uiUpdateHand(hand, staticCardForTesting || randomCard);
 }
 
-function uiUpdateHand(hand, card) {
-  const newCard = uiCreateCard(hand, card);
-
-  // Hopefully this can be a simpler hand and card assembly, and I can
-  // just pass in arguments from global.
-  if (hand === "userHandOne") {
-    userHandOneElement.appendChild(newCard);
-  } else if (hand === "userHandTwo") {
-    userHandTwoElement.appendChild(newCard);
-  } else {
-    dealerHandElement.appendChild(newCard);
+function checkForBlackjack() {
+  if (userHandOne.score === 21 && dealerHand.score !== 21) {
+    console.log("Congrats on BlackJack!");
+    settleHand(userHandOne, 1.5);
+  }
+  if (userHandOne.score === 21 && dealerHand.score === 21) {
+    settleHand(userHandOne, 0);
+  }
+  if (userHandOne.score !== 21 && dealerHand.score === 21) {
+    settleHand(userHandOne);
   }
 }
 
@@ -235,54 +217,92 @@ function uiCreateCard(hand, card) {
   }
 }
 
-function checkForBlackjack() {
-  if (userHandOne.score === 21 && dealerHand.score !== 21) {
-    console.log("Congrats on BlackJack!");
-    settleHand(userHandOne, 1.5);
-  }
-  if (userHandOne.score === 21 && dealerHand.score === 21) {
-    settleHand(userHandOne, 0);
-  }
-  if (userHandOne.score !== 21 && dealerHand.score === 21) {
-    settleHand(userHandOne);
+function uiUpdateHand(hand, card) {
+  const newCard = uiCreateCard(hand, card);
+
+  // Hopefully this can be a simpler hand and card assembly, and I can
+  // just pass in arguments from global.
+  if (hand === "userHandOne") {
+    userHandOneElement.appendChild(newCard);
+  } else if (hand === "userHandTwo") {
+    userHandTwoElement.appendChild(newCard);
+  } else {
+    dealerHandElement.appendChild(newCard);
   }
 }
 
-function resetHand(wagerAmount) {
-  // This is gross and temporary
-  // Really i need to dump const userHandOne
+function canSplit() {
+  if (userHandOne.cards[0].rank === userHandOne.cards[1].rank) {
+    uiToggleDisplay(splitBtn);
+  }
+}
 
-  hands.dealerHand = { cards: [], isActive: true, score: 0 };
-  hands.userHandOne = { cards: [], isActive: true, score: 0 };
-  hands.userHandTwo = { cards: [], isActive: false, score: 0 };
+function canSplit() {
+  if (userHandOne.cards[0].rank === userHandOne.cards[1].rank) {
+    uiToggleDisplay(splitBtn);
+  }
+}
 
-  hands.userHandTwo.score = 0;
+function canDoubleDown(handScore) {
+  if (handScore >= 9 && handScore <= 11) {
+    uiToggleDisplay(doubleDownBtnOne);
+  }
+}
 
-  hands.dealerHand.cards.splice(0, dealerHand.length);
-  hands.userHandOne.cards.splice(0, userHandOne.length);
-  hands.userHandTwo.cards.splice(0, userHandTwo.length);
-  hands.dealerHand.score = 0;
-  hands.userHandOne.score = 0;
-  hands.userHandTwo.score = 0;
+function split() {
+  userHandTwo.cards.push(userHandOne.cards.splice(1, 1)[0]);
 
-  userHandOne.cards = [];
-  userHandTwo.cards = [];
-  dealerHand.cards = [];
-  userHandOne.score = 0;
-  userHandTwo.score = 0;
-  dealerHand.score = 0;
+  uiSplitCards();
+  updateScore();
+  uiUpdateScore();
 
-  deck.splice(0, deck.length);
-  deck.push(...deckStart);
+  uiToggleDisplay(splitBtn);
+}
 
-  userHandOneElement.innerHTML = "";
-  dealerHandElement.innerHTML = "";
-  outcomeInterface.innerHTML = "";
+function doubleDown(hand = "userHandOne") {
+  // if (hand === "userHandOne") {
+  //   stayBtnOne.disabled = true;
+  //   doubleDownBtnOne.disabled = true;
+  //   hitBtnOne.disabled = true;
+  //   splitBtn.disabled = true;
+  // } else if (hand === "userHandTwo") {
+  //   stayBtnTwo.disabled = true;
+  //   doubleDownBtnTwo.disabled = true;
+  //   hitBtnTwo.disabled = true;
+  // }
+
+  wagerAmount = wagerAmount + wagerAmount;
+  wagerElement.innerHTML = wagerAmount;
+  dealCard(hand);
+
+  updateScore();
+  uiUpdateScore();
+  stay(hand); // "doubling down" in live blackjack implies stay logic by default
+}
+
+function uiSplitCards() {
+  userHandOneElement.removeChild(userHandOneElement.lastChild);
+  // Now logic to append hand 2
+  uiUpdateHand("userHandTwo", userHandTwo.cards[0]); // uiUpdateHand needs work
+}
+
+function uiRemoveCard() {
+  // for when split() is called
+  // kinda hacky state handling ... but it works
+  userHandOneElement.removeChild(userHandOneElement.lastChild);
+}
+
+function updateRemainingDeck(card) {
+  const cardPositionInDeck = deck.indexOf(card);
+
+  deck.splice(cardPositionInDeck, 1);
 }
 
 function updateScore() {
   // here's where I need to handle the ace dichotomy
   // doing a lot of identical things twice here but need to to stay sane for now, only handle so much abstraction at once lol
+
+  // Definitely need to break this down so it's more comprehensible
 
   let numDealerAces = dealerHand.cards.reduce((aceCount, card) => {
     return card.rank === "A" ? aceCount + 1 : aceCount;
@@ -423,12 +443,6 @@ function uiUpdateScore() {
   dealerScoreElement.textContent = dealerHand.score;
 }
 
-function uiRemoveCard() {
-  // for when split() is called
-  // kinda hacky state handling ... but it works
-  userHandOneElement.removeChild(userHandOneElement.lastChild);
-}
-
 function hitUser(hand = "userHandOne") {
   dealCard(hand);
   updateScore();
@@ -440,47 +454,9 @@ function hitUser(hand = "userHandOne") {
   }
 }
 
-function split() {
-  splitBtn.classList.add("activeChoice");
-  userHandTwo.cards.push(userHandOne.cards.splice(1, 1)[0]);
-  console.log(userHandTwo.cards, "<--userHandTwo in split");
-  console.log(userHandOne.cards, "<--userHandOne in split");
-
-  uiRemoveCard();
-  uiUpdateHand("userHandTwo", userHandTwo.cards[0]);
-  updateScore();
-  uiUpdateScore();
-
-  userHandTwo.isActive = true;
-  splitBtn.disabled = true;
-  hitBtnTwo.disabled = true;
-  stayBtnTwo.disabled = true;
-  doubleDownBtnTwo.disabled = true;
-}
-function doubleDown(hand = "userHandOne") {
-  if (hand === "userHandOne") {
-    stayBtnOne.disabled = true;
-    doubleDownBtnOne.disabled = true;
-    hitBtnOne.disabled = true;
-    splitBtn.disabled = true;
-  } else if (hand === "userHandTwo") {
-    stayBtnTwo.disabled = true;
-    doubleDownBtnTwo.disabled = true;
-    hitBtnTwo.disabled = true;
-  }
-
-  wagerAmount = wagerAmount + wagerAmount;
-  wagerElement.innerHTML = wagerAmount;
-  dealCard(hand);
-
-  updateScore();
-  uiUpdateScore();
-  stay(hand); // "doubling down" in live blackjack implies stay logic by default
-}
-
 function stay(hand) {
   //   flipDealerCardUp();
-
+  // if userHandTwo is active then switch that hand to main UI
   dealerAction();
 }
 
@@ -538,6 +514,7 @@ function bankrollUpdate(outcome, blackjackMultiplier) {
 }
 
 function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
+  // Needs work to handle split situation where 2 hands and pause after stay...
   const userScore =
     hand === "userHandOne" ? userHandOne.score : userHandTwo.score;
   const outcome = compareScores(userScore, blackjackMultiplier);
@@ -557,12 +534,62 @@ function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
 
 function uiOutcomeInterface(outcome) {
   // temporary timed transition ui between current hand and wagering next hand
-  outcomeElement.classList.replace("hidden", "visible");
+  uiToggleDisplay(outcomeElement);
   outcomeMessageElement.innerHTML = outcome.toUpperCase();
   setTimeout(() => {
-    outcomeElement.classList.replace("visible", "hidden");
+    uiToggleDisplay(outcomeElement);
   }, 3000);
   // console.log("Outcome inside uiOutcomeInterface:", outcome);
+}
+
+function uiTransitionToWager() {
+  // moving from wager view to deal view
+  // the UI inside will contain the deal button which will call the dealNewHand function
+
+  uiToggleDisplay(initialWager);
+  initialWager.classList.add("initial-wager");
+  resetHand();
+}
+
+function resetHand(wagerAmount) {
+  // This is gross and temporary
+  // Really i need to dump const userHandOne
+
+  hands.dealerHand = { cards: [], isActive: true, score: 0 };
+  hands.userHandOne = { cards: [], isActive: true, score: 0 };
+  hands.userHandTwo = { cards: [], isActive: false, score: 0 };
+
+  hands.userHandTwo.score = 0;
+
+  hands.dealerHand.cards.splice(0, dealerHand.length);
+  hands.userHandOne.cards.splice(0, userHandOne.length);
+  hands.userHandTwo.cards.splice(0, userHandTwo.length);
+  hands.dealerHand.score = 0;
+  hands.userHandOne.score = 0;
+  hands.userHandTwo.score = 0;
+
+  userHandOne.cards = [];
+  userHandTwo.cards = [];
+  dealerHand.cards = [];
+  userHandOne.score = 0;
+  userHandTwo.score = 0;
+  dealerHand.score = 0;
+
+  deck.splice(0, deck.length);
+  deck.push(...deckStart);
+
+  userHandOneElement.innerHTML = "";
+  dealerHandElement.innerHTML = "";
+  outcomeInterface.innerHTML = "";
+}
+
+// Utility functions
+function uiToggleDisplay(element) {
+  if (element.classList.contains("hidden")) {
+    element.classList.replace("hidden", "visible");
+  } else {
+    element.classList.replace("visible", "hidden");
+  }
 }
 
 // setWager();

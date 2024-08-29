@@ -22,23 +22,16 @@ main {
   margin: auto;
 }
 
-.initial-wager {
-  display: grid;
+#initial-wager {
   justify-content: center;
   justify-items: center;
   justify-self: center;
   align-self: center;
 }
 
-#initial-wager {
-}
-
-.game-board {
+#game-board {
   width: 80%;
   max-width: 1200px;
-
-  display: grid;
-
   grid-template-rows: repeat(3, 1fr);
   grid-template-columns: repeat(3, 1fr);
   grid-template-areas:
@@ -187,10 +180,6 @@ main {
   left: 0;
 }
 
-.visible {
-  display: grid;
-}
-
 #outcome {
   justify-items: center;
   align-items: center;
@@ -229,4 +218,7 @@ main {
 
 .hidden {
   display: none; /* Hidden by default */
+}
+.visible {
+  display: grid;
 }

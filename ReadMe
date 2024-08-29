@@ -12,6 +12,17 @@ flipping it on or off using CSS in reaction to JS event listeners, or creating U
 them in your JS thread? Your HTML is definitely much more confusing, also there may be a better solution
 in vanilla JS that I didn't think of on my own.
 
+Split Flow:
+  1. Remove 2nd card from handOne
+  2. Add 2nd card to handTwo in mini view
+  3. Create wager for hand 2
+  4. User plays out hand 1. if hand exists , When "stay()" don't settle, but play out hand 2.(So let's move
+  settle out of stay if it is there and into dealerAction)
+  5. user plays out hand 2.
+  6. dealer plays out dealer hand.
+  7. Settle hand 1 . UI outcome for hand 1. Bankroll update after hand 1.
+  8. Settle hand 2. UI outcome for hand 2. Bankroll update after hand 2.
+  
 
 House Rules:
 Only 1 split
