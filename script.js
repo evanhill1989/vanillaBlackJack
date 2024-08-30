@@ -75,7 +75,7 @@ const deckStart = [
   -- 
 
 */
-const suits = ["♤", "♧", "♢", "♡"];
+
 const deck = [...deckStart];
 
 let bankroll = 1000;
@@ -106,11 +106,10 @@ const splitBtn = document.getElementById("split-btn");
 
 const hitBtnOne = document.getElementById("hit-btn-handOne");
 const stayBtnOne = document.getElementById("stay-btn-handOne");
-const doubleDownBtnOne = document.getElementById("doubledown-btn-handOne");
+const doubleDownBtn = document.getElementById("doubledown-btn");
 
 const hitBtnTwo = document.getElementById("hit-btn-handTwo");
 const stayBtnTwo = document.getElementById("stay-btn-handTwo");
-const doubleDownBtnTwo = document.getElementById("doubledown-btn-handTwo");
 
 wagerInput.addEventListener("", (event) => {
   wagerElement.innerHTML = wagerAmount;
@@ -142,7 +141,7 @@ const hands = {
 const userHandOne = hands.userHandOne;
 const userHandTwo = hands.userHandTwo; // Will only have a "userHandTwo" after split() -- function for splitting a pair
 const dealerHand = hands.dealerHand;
-
+const suits = ["♤", "♧", "♢", "♡"];
 function dealNewHand(event) {
   if (event) {
     event.preventDefault();
@@ -153,16 +152,39 @@ function dealNewHand(event) {
   console.log(numWagerAmount, "wagerAmount inside dealNewHand()");
   uiToggleDisplay(initialWager);
   uiToggleDisplay(gameBoard);
-  dealCard("userHandOne");
-  dealCard("userHandOne");
+  dealCard("userHandOne", {
+    rank: "5",
+    value: 5,
+    suitEmoji: "♤",
+    suit: "spades",
+  });
+  dealCard("userHandOne", {
+    rank: "5",
+    value: 5,
+    suitEmoji: "♤",
+    suit: "spades",
+  });
 
-  dealCard("dealerHand");
-  dealCard("dealerHand");
+  dealCard("dealerHand", {
+    rank: "K",
+    value: 10,
+    suitEmoji: "♧",
+    suit: "clubs",
+  });
+  dealCard("dealerHand", {
+    rank: "4",
+    value: 4,
+    suitEmoji: "♧",
+    suit: "clubs",
+  });
 
   updateScore();
   uiUpdateScore();
 
   checkForBlackjack();
+  canSplit();
+  canDoubleDown(userHandOne.score);
+  // canInsure();
 }
 
 function dealCard(hand, staticCardForTesting) {
@@ -179,16 +201,33 @@ function dealCard(hand, staticCardForTesting) {
 }
 
 function checkForBlackjack() {
+  // Want to find a way to handle immediate settling better
+  // current settleHand pushes through compareScores
+  // !!! I can just make a specific helper function like settlehand but just for blackjacks
+
   if (userHandOne.score === 21 && dealerHand.score !== 21) {
     console.log("Congrats on BlackJack!");
-    settleHand(userHandOne, 1.5);
+    settleBlackjack("win");
   }
   if (userHandOne.score === 21 && dealerHand.score === 21) {
-    settleHand(userHandOne, 0);
+    settleBlackjack("push");
   }
   if (userHandOne.score !== 21 && dealerHand.score === 21) {
-    settleHand(userHandOne);
+    settleBlackjack("lose");
   }
+}
+
+async function settleBlackjack(outcome) {
+  outcome === "win" ? (blackjackMultiplier = 1.5) : (blackjackMultiplier = 1);
+  bankrollUpdate(outcome, blackjackMultiplier);
+
+  bankrollElement.innerHTML = bankroll;
+  bankrollTab.innerHTML = bankroll;
+
+  await uiOutcome(outcome);
+  // we need uiTransitionToWager() to run after uiOutcome finishes
+  uiTransitionToWager();
+  // UI function for transition between hands view Outcome summary
 }
 
 function uiCreateCard(hand, card) {
@@ -233,15 +272,9 @@ function canSplit() {
   }
 }
 
-function canSplit() {
-  if (userHandOne.cards[0].rank === userHandOne.cards[1].rank) {
-    uiToggleDisplay(splitBtn);
-  }
-}
-
 function canDoubleDown(handScore) {
   if (handScore >= 9 && handScore <= 11) {
-    uiToggleDisplay(doubleDownBtnOne);
+    uiToggleDisplay(doubleDownBtn);
   }
 }
 
@@ -295,6 +328,7 @@ function updateRemainingDeck(card) {
 }
 
 function updateScore() {
+  // this looks insane
   // here's where I need to handle the ace dichotomy
   // doing a lot of identical things twice here but need to to stay sane for now, only handle so much abstraction at once lol
 
@@ -444,6 +478,7 @@ function hitUser(hand = "userHandOne") {
   // ifffff isn't a split hand
   // but I mean i could still just settle it as an instant loss
   // because even if dealer ends up busting you still lose wager cause you busted first
+
   dealCard(hand);
   updateScore();
   console.log(dealerHand.score, "dealerScore inside hitUser");
@@ -527,33 +562,14 @@ function compareScores(userScore, blackjackMultiplier) {
 }
 
 function bankrollUpdate(outcome, blackjackMultiplier) {
-  console.log(outcome);
-  console.log(blackjackMultiplier);
   if (outcome === "win") {
     bankroll += wagerAmount * blackjackMultiplier;
   } else if (outcome === "lose") {
-    bankroll += wagerAmount * blackjackMultiplier;
+    bankroll -= wagerAmount;
   } else if (outcome === "push") {
     bankroll = bankroll;
   } else {
     console.error("error in bankrollUpdate");
-  }
-}
-
-function checkForBlackjack() {
-  // Want to find a way to handle immediate settling better
-  // current settleHand pushes through compareScores
-  // !!! I can just make a specific helper function like settlehand but just for blackjacks
-
-  if (userHandOne.score === 21 && dealerHand.score !== 21) {
-    console.log("Congrats on BlackJack!");
-    settleHand(userHandOne, 1.5);
-  }
-  if (userHandOne.score === 21 && dealerHand.score === 21) {
-    settleHand(userHandOne, 0);
-  }
-  if (userHandOne.score !== 21 && dealerHand.score === 21) {
-    settleHand(userHandOne);
   }
 }
 

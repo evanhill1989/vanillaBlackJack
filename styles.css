@@ -100,9 +100,14 @@ main {
 }
 
 .hand-container {
+  position: relative;
   display: flex;
   flex-direction: column;
   grid-area: hand-container;
+}
+
+#split-button {
+  position: fixed;
 }
 
 .card-container {

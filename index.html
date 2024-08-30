@@ -41,11 +41,7 @@
             Hit
           </button>
           <div id="wager">
-            <button
-              id="doubledown-btn-handOne"
-              onClick="doubleDown('userHandOne')"
-              disabled
-            >
+            <button class="hidden" id="doubledown-btn" onClick="doubleDown()">
               Double Down
             </button>
             Wager: $<span id="wager_amount"></span>
@@ -61,6 +57,9 @@
 
         <div id="user-board">
           <div class="hand-container">
+            <button id="split-btn" class="hidden" onClick="split()">
+              Split
+            </button>
             <div class="hand" id="user-hand"></div>
           </div>
           <div class="score user-score">
