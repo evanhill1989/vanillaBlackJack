@@ -106,8 +106,29 @@ main {
   grid-area: hand-container;
 }
 
+.split-hand {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  height: 100px;
+  width: 100px;
+  border: solid 2px orange;
+}
+
+.split-card {
+  background-color: white;
+
+  display: grid;
+  grid-template-rows: 20px 1fr 20px;
+  width: 30px;
+  height: 45px;
+  padding: 5px;
+  border: 1px solid #000;
+  border-radius: 10px;
+}
+
 #split-button {
-  position: fixed;
+  position: absolute;
 }
 
 .card-container {
@@ -119,9 +140,7 @@ main {
 }
 
 .card {
-  /*position: absolute; Absolute positioning allows overlap */
   display: grid;
-
   grid-template-rows: 20px 1fr 20px;
   width: 100px;
   height: 150px;
@@ -183,12 +202,6 @@ main {
   position: fixed;
   bottom: 0;
   left: 0;
-}
-
-.split-hand {
-}
-
-#split-hand {
 }
 
 #outcome {

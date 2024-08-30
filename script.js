@@ -97,6 +97,8 @@ const wagerElement = document.getElementById("wager_amount");
 const initialWager = document.getElementById("initial-wager");
 const gameBoard = document.getElementById("game-board");
 
+const splitHandElement = document.getElementById("split-hand");
+
 const bankrollElement = document.getElementById("bankroll");
 const bankrollTab = document.getElementById("bankroll_tab");
 
@@ -106,7 +108,7 @@ const splitBtn = document.getElementById("split-btn");
 
 const hitBtnOne = document.getElementById("hit-btn-handOne");
 const stayBtnOne = document.getElementById("stay-btn-handOne");
-const doubleDownBtn = document.getElementById("doubledown-btn");
+const doubleBtn = document.getElementById("double-btn");
 
 const hitBtnTwo = document.getElementById("hit-btn-handTwo");
 const stayBtnTwo = document.getElementById("stay-btn-handTwo");
@@ -183,7 +185,7 @@ function dealNewHand(event) {
 
   checkForBlackjack();
   canSplit();
-  canDoubleDown(userHandOne.score);
+  canDouble(userHandOne.score);
   // canInsure();
 }
 
@@ -231,6 +233,10 @@ async function settleBlackjack(outcome) {
 }
 
 function uiCreateCard(hand, card) {
+  /* make more like split preview and uiAddCard more like uiCreateSplitCard in that we just loop over the hand object to create the cards... but how do we control the feel of deal delay?
+
+  Could just put the setTimeout inside the for Each loop...
+*/
   const cardElement = document.createElement("div");
   const suitElement = document.createElement("div");
   const rightRankElement = document.createElement("div");
@@ -272,34 +278,13 @@ function canSplit() {
   }
 }
 
-function canDoubleDown(handScore) {
+function canDouble(handScore) {
   if (handScore >= 9 && handScore <= 11) {
-    uiToggleDisplay(doubleDownBtn);
+    uiToggleDisplay(doubleBtn);
   }
 }
 
-function split() {
-  userHandTwo.cards.push(userHandOne.cards.splice(1, 1)[0]);
-
-  uiSplitCards();
-  updateScore();
-  uiUpdateScore();
-
-  uiToggleDisplay(splitBtn);
-}
-
-function doubleDown(hand = "userHandOne") {
-  // if (hand === "userHandOne") {
-  //   stayBtnOne.disabled = true;
-  //   doubleDownBtnOne.disabled = true;
-  //   hitBtnOne.disabled = true;
-  //   splitBtn.disabled = true;
-  // } else if (hand === "userHandTwo") {
-  //   stayBtnTwo.disabled = true;
-  //   doubleDownBtnTwo.disabled = true;
-  //   hitBtnTwo.disabled = true;
-  // }
-
+function double(hand = "userHandOne") {
   wagerAmount = wagerAmount + wagerAmount;
   wagerElement.innerHTML = wagerAmount;
   dealCard(hand);
@@ -308,12 +293,41 @@ function doubleDown(hand = "userHandOne") {
   uiUpdateScore();
   stay(hand); // "doubling down" in live blackjack implies stay logic by default
 }
+function split() {
+  userHandTwo.cards.push(userHandOne.cards.splice(1, 1)[0]);
+  uiToggleDisplay(splitBtn);
+  uiToggleDisplay(doubleBtn);
+  uiSplitCards(userHandTwo);
+  updateScore();
+  uiUpdateScore();
 
-function uiSplitCards() {
-  userHandMainElement.removeChild(userHandMainElement.lastChild);
-  // Now logic to append hand 2
-  uiUpdateHand("userHandTwo", userHandTwo.cards[0]); // uiUpdateHand needs work
+  uiToggleDisplay(splitBtn);
 }
+
+function uiSplitCards(hand) {
+  userHandMainElement.removeChild(userHandMainElement.lastChild);
+  uiSplitPreview(hand);
+}
+
+function uiSplitPreview(hand) {
+  hand.cards.forEach((element) => {
+    const newCard = uiCreateSplitCard(element);
+    splitHandElement.appendChild(newCard);
+  });
+}
+
+function uiCreateSplitCard(card) {
+  const newCard = document.createElement("div");
+  const rankElement = document.createElement("div");
+  rankElement.textContent = card.rank;
+  newCard.classList.add("split-card");
+  newCard.appendChild(rankElement);
+  return newCard;
+}
+
+function switchSplitPreview() {}
+
+//
 
 function uiRemoveCard() {
   // for when split() is called
@@ -494,10 +508,6 @@ function wasSplit() {
   let split = userHandTwo.length > 0 ? true : false;
   return split;
 }
-
-function uiMiniHandOnDeck() {}
-
-function switchCurrentHand() {}
 
 function stay(hand) {
   if (wasSplit() && userHandOne.isActive) {
