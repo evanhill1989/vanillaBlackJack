@@ -180,6 +180,7 @@ function dealNewHand(event) {
     suit: "clubs",
   });
 
+  uiDealHands();
   updateScore();
   uiUpdateScore();
 
@@ -199,7 +200,44 @@ function dealCard(hand, staticCardForTesting) {
     dealerHand.cards.push(staticCardForTesting || randomCard);
   }
   updateRemainingDeck(staticCardForTesting || randomCard);
-  uiAddCard(hand, staticCardForTesting || randomCard);
+}
+
+function uiDealHands() {
+  // will work on realistic deal timing later
+  userHandOne.cards.forEach((card) => {
+    const newCard = uiCreateCard("userHandOne", card);
+    userHandMainElement.appendChild(newCard);
+  });
+  dealerHand.cards.forEach((card) => {
+    const newCard = uiCreateCard("dealerHand", card);
+    dealerHandElement.appendChild(newCard);
+  });
+}
+
+function uiCreateCard(hand, card) {
+  const cardElement = document.createElement("div");
+  const suitElement = document.createElement("div");
+  const rightRankElement = document.createElement("div");
+  const leftRankElement = document.createElement("div");
+
+  rightRankElement.textContent = card.rank;
+  rightRankElement.classList.add("rank", "rankRightSide");
+  leftRankElement.textContent = card.rank;
+  leftRankElement.classList.add("rank", "rankLeftSide");
+  suitElement.textContent = card.suitEmoji;
+  suitElement.classList.add("suit");
+  cardElement.classList.add("card");
+
+  if (hand === "dealerHand" && dealerHand.length === 0) {
+    cardElement.classList.add("card-back");
+    return cardElement;
+  } else {
+    cardElement.classList.add("card-face");
+    cardElement.appendChild(leftRankElement);
+    cardElement.appendChild(suitElement);
+    cardElement.appendChild(rightRankElement);
+    return cardElement;
+  }
 }
 
 function checkForBlackjack() {
@@ -230,36 +268,6 @@ async function settleBlackjack(outcome) {
   // we need uiTransitionToWager() to run after uiOutcome finishes
   uiTransitionToWager();
   // UI function for transition between hands view Outcome summary
-}
-
-function uiCreateCard(hand, card) {
-  /* make more like split preview and uiAddCard more like uiCreateSplitCard in that we just loop over the hand object to create the cards... but how do we control the feel of deal delay?
-
-  Could just put the setTimeout inside the for Each loop...
-*/
-  const cardElement = document.createElement("div");
-  const suitElement = document.createElement("div");
-  const rightRankElement = document.createElement("div");
-  const leftRankElement = document.createElement("div");
-
-  rightRankElement.textContent = card.rank;
-  rightRankElement.classList.add("rank", "rankRightSide");
-  leftRankElement.textContent = card.rank;
-  leftRankElement.classList.add("rank", "rankLeftSide");
-  suitElement.textContent = card.suitEmoji;
-  suitElement.classList.add("suit");
-  cardElement.classList.add("card");
-
-  if (hand === "dealerHand" && dealerHand.length === 0) {
-    cardElement.classList.add("card-back");
-    return cardElement;
-  } else {
-    cardElement.classList.add("card-face");
-    cardElement.appendChild(leftRankElement);
-    cardElement.appendChild(suitElement);
-    cardElement.appendChild(rightRankElement);
-    return cardElement;
-  }
 }
 
 function uiAddCard(hand, card) {
