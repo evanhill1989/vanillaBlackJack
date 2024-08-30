@@ -75,7 +75,7 @@ const deckStart = [
   -- 
 
 */
-
+const suits = ["♤", "♧", "♢", "♡"];
 const deck = [...deckStart];
 
 let bankroll = 1000;
@@ -85,8 +85,8 @@ const outcomeElement = document.getElementById("outcome");
 const outcomeMessageElement = document.getElementById("outcome-message");
 
 const userBoardElement = document.getElementById("user-board");
-const userHandOneElement = document.getElementById("user-hand");
-const userHandTwoElement = document.getElementById("user-hand-two");
+const userHandMainElement = document.getElementById("user-hand");
+// const userHandTwoElement = document.getElementById("user-hand-two");
 const dealerHandElement = document.getElementById("dealer-hand");
 const userScoreElement = document.getElementById("user_score");
 
@@ -148,7 +148,7 @@ function dealNewHand(event) {
     event.preventDefault();
   }
   console.log(event);
-  wagerAmount = event.target[0].value;
+  wagerAmount = event.target[0].value || 100;
   const numWagerAmount = parseInt(wagerAmount);
   console.log(numWagerAmount, "wagerAmount inside dealNewHand()");
   uiToggleDisplay(initialWager);
@@ -175,7 +175,7 @@ function dealCard(hand, staticCardForTesting) {
     dealerHand.cards.push(staticCardForTesting || randomCard);
   }
   updateRemainingDeck(staticCardForTesting || randomCard);
-  uiUpdateHand(hand, staticCardForTesting || randomCard);
+  uiAddCard(hand, staticCardForTesting || randomCard);
 }
 
 function checkForBlackjack() {
@@ -217,17 +217,13 @@ function uiCreateCard(hand, card) {
   }
 }
 
-function uiUpdateHand(hand, card) {
+function uiAddCard(hand, card) {
   const newCard = uiCreateCard(hand, card);
 
-  // Hopefully this can be a simpler hand and card assembly, and I can
-  // just pass in arguments from global.
-  if (hand === "userHandOne") {
-    userHandOneElement.appendChild(newCard);
-  } else if (hand === "userHandTwo") {
-    userHandTwoElement.appendChild(newCard);
-  } else {
+  if (hand === "dealerHand") {
     dealerHandElement.appendChild(newCard);
+  } else {
+    userHandMainElement.appendChild(newCard);
   }
 }
 
@@ -281,7 +277,7 @@ function doubleDown(hand = "userHandOne") {
 }
 
 function uiSplitCards() {
-  userHandOneElement.removeChild(userHandOneElement.lastChild);
+  userHandMainElement.removeChild(userHandMainElement.lastChild);
   // Now logic to append hand 2
   uiUpdateHand("userHandTwo", userHandTwo.cards[0]); // uiUpdateHand needs work
 }
@@ -289,7 +285,7 @@ function uiSplitCards() {
 function uiRemoveCard() {
   // for when split() is called
   // kinda hacky state handling ... but it works
-  userHandOneElement.removeChild(userHandOneElement.lastChild);
+  userHandMainElement.removeChild(userHandMainElement.lastChild);
 }
 
 function updateRemainingDeck(card) {
@@ -444,14 +440,18 @@ function uiUpdateScore() {
 }
 
 function hitUser(hand = "userHandOne") {
-  // Need to handle case where split and userHandTwo busts
+  //!!!! Still Need to handle the case where user busts for instant loss
+  // ifffff isn't a split hand
+  // but I mean i could still just settle it as an instant loss
+  // because even if dealer ends up busting you still lose wager cause you busted first
   dealCard(hand);
   updateScore();
   console.log(dealerHand.score, "dealerScore inside hitUser");
   uiUpdateScore();
+  // insta loss flow if bust
   if (userHandOne.score > 21) {
     console.log("inside hitUser when busts - using generic . naming");
-    // settleHand(hand, "lose");
+    settleHand(hand);
   }
 }
 
@@ -460,11 +460,16 @@ function wasSplit() {
   return split;
 }
 
+function uiMiniHandOnDeck() {}
+
+function switchCurrentHand() {}
+
 function stay(hand) {
   if (wasSplit() && userHandOne.isActive) {
     userHandOne.isActive = false;
     userHandTwo.isActive = true;
     // switch ui to userHandTwo
+    switchCurrentHand(userHandTwo);
   } else if (wasSplit() && userHandTwo.isActive) {
     dealerAction();
     // switch ui back to userHandOne
@@ -499,6 +504,7 @@ function compareScores(userScore, blackjackMultiplier) {
   if (blackjackMultiplier === 0) {
     return "push";
   }
+
   if (userScore > 21) {
     console.log("bust");
     return "lose";
@@ -521,20 +527,39 @@ function compareScores(userScore, blackjackMultiplier) {
 }
 
 function bankrollUpdate(outcome, blackjackMultiplier) {
+  console.log(outcome);
+  console.log(blackjackMultiplier);
   if (outcome === "win") {
     bankroll += wagerAmount * blackjackMultiplier;
   } else if (outcome === "lose") {
-    bankroll -= wagerAmount;
+    bankroll += wagerAmount * blackjackMultiplier;
   } else if (outcome === "push") {
-    bankroll += wagerAmount;
+    bankroll = bankroll;
   } else {
     console.error("error in bankrollUpdate");
   }
 }
 
-function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
+function checkForBlackjack() {
+  // Want to find a way to handle immediate settling better
+  // current settleHand pushes through compareScores
+  // !!! I can just make a specific helper function like settlehand but just for blackjacks
+
+  if (userHandOne.score === 21 && dealerHand.score !== 21) {
+    console.log("Congrats on BlackJack!");
+    settleHand(userHandOne, 1.5);
+  }
+  if (userHandOne.score === 21 && dealerHand.score === 21) {
+    settleHand(userHandOne, 0);
+  }
+  if (userHandOne.score !== 21 && dealerHand.score === 21) {
+    settleHand(userHandOne);
+  }
+}
+
+async function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
   // Needs work to handle split situation where 2 hands and pause after stay...
-  hand.isActive;
+
   const userScore =
     hand === "userHandOne" ? userHandOne.score : userHandTwo.score;
   const outcome = compareScores(userScore, blackjackMultiplier);
@@ -544,7 +569,8 @@ function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
   bankrollElement.innerHTML = bankroll;
   bankrollTab.innerHTML = bankroll;
 
-  uiOutcome(outcome);
+  await uiOutcome(outcome);
+  // we need uiTransitionToWager() to run after uiOutcome finishes
   uiTransitionToWager();
   // UI function for transition between hands view Outcome summary
   // UI function to clear away boards transition
@@ -553,19 +579,21 @@ function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
 }
 
 function uiOutcome(outcome) {
-  // temporary timed transition ui between current hand and wagering next hand
-  uiToggleDisplay(outcomeElement);
-  outcomeMessageElement.innerHTML = outcome.toUpperCase();
-  setTimeout(() => {
+  return new Promise((resolve) => {
+    // Temporary timed transition UI between current hand and wagering next hand
     uiToggleDisplay(outcomeElement);
-  }, 3000);
-  // console.log("Outcome inside uiOutcomeInterface:", outcome);
-}
+    outcomeMessageElement.innerHTML = outcome.toUpperCase();
 
+    setTimeout(() => {
+      uiToggleDisplay(outcomeElement);
+      resolve(); // Resolve the Promise after the timeout
+    }, 3000); // 3-second delay
+  });
+}
 function uiTransitionToWager() {
   // moving from wager view to deal view
   // the UI inside will contain the deal button which will call the dealNewHand function
-
+  uiToggleDisplay(gameBoard);
   uiToggleDisplay(initialWager);
   initialWager.classList.add("initial-wager");
   resetHand();
@@ -598,7 +626,7 @@ function resetHand(wagerAmount) {
   deck.splice(0, deck.length);
   deck.push(...deckStart);
 
-  userHandOneElement.innerHTML = "";
+  userHandMainElement.innerHTML = "";
   dealerHandElement.innerHTML = "";
   // outcomeInterface.innerHTML = "";
 }

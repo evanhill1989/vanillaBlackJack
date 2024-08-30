@@ -36,7 +36,7 @@ main {
   grid-template-columns: repeat(3, 1fr);
   grid-template-areas:
     "dealer-board dealer-board dealer-board"
-    "actions-wager actions-wager actions-wager"
+    "actions actions actions"
     "user-board user-board user-board";
 }
 
@@ -56,8 +56,8 @@ main {
   grid-template-areas: ". hand-container dealer-score";
 }
 
-.actions-wager {
-  grid-area: actions-wager;
+.in-hand-actions {
+  grid-area: actions;
   width: 100%;
   display: grid;
 
@@ -178,6 +178,12 @@ main {
   position: fixed;
   bottom: 0;
   left: 0;
+}
+
+.split-hand {
+}
+
+#split-hand {
 }
 
 #outcome {
