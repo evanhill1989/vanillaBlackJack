@@ -22,7 +22,11 @@ Split Flow:
   6. dealer plays out dealer hand.
   7. Settle hand 1 . UI outcome for hand 1. Bankroll update after hand 1.
   8. Settle hand 2. UI outcome for hand 2. Bankroll update after hand 2.
-  
+
+Stay --> Settle --> Ui Outcomes --> Wager --> Deal New Hand Flow:
+    -- check to see if wasSplit()
+    1. User hand one stays active until
+    2. what if userHandTwo busts?
 
 House Rules:
 Only 1 split

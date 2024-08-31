@@ -125,17 +125,17 @@ bankrollTab.innerHTML = bankroll;
 const hands = {
   dealerHand: {
     cards: [],
-    isActive: true,
+    isFocus: true,
     score: 0,
   },
   userHandOne: {
     cards: [],
-    isActive: true,
+    isFocus: true,
     score: 0,
   },
   userHandTwo: {
     cards: [],
-    isActive: false,
+    isFocus: false,
     score: 0,
   },
 };
@@ -154,26 +154,26 @@ function dealNewHand(event) {
   console.log(numWagerAmount, "wagerAmount inside dealNewHand()");
   uiToggleDisplay(initialWager);
   uiToggleDisplay(gameBoard);
-  dealCard("userHandOne", {
+  dealCard(userHandOne, {
     rank: "5",
     value: 5,
     suitEmoji: "♤",
     suit: "spades",
   });
-  dealCard("userHandOne", {
-    rank: "5",
-    value: 5,
-    suitEmoji: "♤",
-    suit: "spades",
+  dealCard(userHandOne, {
+    rank: "8",
+    value: 8,
+    suitEmoji: "♢",
+    suit: "diamonds",
   });
 
-  dealCard("dealerHand", {
+  dealCard(dealerHand, {
     rank: "K",
     value: 10,
     suitEmoji: "♧",
     suit: "clubs",
   });
-  dealCard("dealerHand", {
+  dealCard(dealerHand, {
     rank: "4",
     value: 4,
     suitEmoji: "♧",
@@ -185,21 +185,23 @@ function dealNewHand(event) {
   uiUpdateScore();
 
   checkForBlackjack();
-  canSplit();
+  // canSplit();
   canDouble(userHandOne.score);
   // canInsure();
 }
 
 function dealCard(hand, staticCardForTesting) {
   const randomCard = deck[Math.ceil(Math.random() * deck.length) - 1];
-  if (hand === "userHandOne") {
+  if (hand === userHandOne) {
     userHandOne.cards.push(staticCardForTesting || randomCard);
-  } else if (hand === "userHandTwo") {
+  } else if (hand === userHandTwo) {
     userHandTwo.cards.push(staticCardForTesting || randomCard);
   } else {
     dealerHand.cards.push(staticCardForTesting || randomCard);
   }
   updateRemainingDeck(staticCardForTesting || randomCard);
+
+  return randomCard;
 }
 
 function uiDealHands() {
@@ -292,7 +294,7 @@ function canDouble(handScore) {
   }
 }
 
-function double(hand = "userHandOne") {
+function double(hand = userHandOne) {
   wagerAmount = wagerAmount + wagerAmount;
   wagerElement.innerHTML = wagerAmount;
   dealCard(hand);
@@ -314,14 +316,7 @@ function split() {
 
 function uiSplitCards(hand) {
   userHandMainElement.removeChild(userHandMainElement.lastChild);
-  uiSplitPreview(hand);
-}
-
-function uiSplitPreview(hand) {
-  hand.cards.forEach((element) => {
-    const newCard = uiCreateSplitCard(element);
-    splitHandElement.appendChild(newCard);
-  });
+  switchSplitPreview(hand);
 }
 
 function uiCreateSplitCard(card) {
@@ -333,9 +328,47 @@ function uiCreateSplitCard(card) {
   return newCard;
 }
 
-function switchSplitPreview() {}
+function switchSplitPreview(hand) {
+  const newHandArray = [];
+  hand.cards.forEach((card) => {
+    const newCard = uiCreateSplitCard(card);
+    newHandArray.push(newCard);
+  });
 
-//
+  splitHandElement.replaceChildren(...newHandArray);
+}
+
+function switchFocusHand(hand) {
+  // switches TO "hand"
+  const newHandArray = []; /* */
+  hand.cards.forEach((card) => {
+    const newCard = uiCreateCard("userHandOne", card);
+    newHandArray.push(newCard);
+  });
+  userHandMainElement.replaceChildren(...newHandArray);
+}
+
+function uiToggleFocusHand() {
+  const currentFocus = userHandOne.isFocus ? userHandOne : userHandTwo;
+  const currentSplitPreview = userHandOne.isFocus ? userHandTwo : userHandOne;
+
+  switchFocusHand(currentSplitPreview);
+  switchSplitPreview(currentFocus);
+  toggleFocusHand(); //
+  console.log("focus hand toggled. in uiToggleFocusHand");
+}
+
+function toggleFocusHand() {
+  if (userHandOne.isFocus) {
+    userHandOne.isFocus = false;
+    userHandTwo.isFocus = true;
+  } else {
+    userHandOne.isFocus = true;
+    userHandTwo.isFocus = false;
+  }
+
+  uiUpdateScore();
+}
 
 function uiRemoveCard() {
   // for when split() is called
@@ -349,185 +382,124 @@ function updateRemainingDeck(card) {
   deck.splice(cardPositionInDeck, 1);
 }
 
+function updateSingleHandScore(hand) {
+  let numAces = hand.cards.reduce((aceCount, card) => {
+    return card.rank === "A" ? aceCount + 1 : aceCount;
+  }, 0);
+
+  let nonAces = hand.cards.filter((card) => card.rank !== "A");
+  let nonAcesTotal = nonAces.reduce((sum, card) => sum + card.value, 0);
+  switch (numAces) {
+    case 0:
+      hand.score = nonAcesTotal;
+      break;
+    case 1:
+      if (nonAcesTotal <= 10) {
+        hand.score = nonAcesTotal + 11;
+      } else {
+        hand.score = nonAcesTotal + 1;
+      }
+      break;
+    case 2: // 10 1 11
+      if (nonAcesTotal <= 9) {
+        hand.score = nonAcesTotal + 12;
+      } else {
+        hand.score = nonAcesTotal + 2;
+      }
+      break;
+    case 3:
+      if (nonAcesTotal <= 8) {
+        hand.score = nonAcesTotal + 13;
+      } else {
+        hand.score = nonAcesTotal + 3;
+      }
+      break;
+    case 4:
+      if (nonAcesTotal <= 7) {
+        hand.score = nonAcesTotal + 14;
+      } else {
+        hand.score = nonAcesTotal + 4;
+      }
+      break;
+  }
+}
 function updateScore() {
-  // this looks insane
-  // here's where I need to handle the ace dichotomy
-  // doing a lot of identical things twice here but need to to stay sane for now, only handle so much abstraction at once lol
+  updateSingleHandScore(dealerHand);
 
-  // Definitely need to break this down so it's more comprehensible
+  updateSingleHandScore(userHandOne);
 
-  let numDealerAces = dealerHand.cards.reduce((aceCount, card) => {
-    return card.rank === "A" ? aceCount + 1 : aceCount;
-  }, 0);
-  let numUserHandOneAces = userHandOne.cards.reduce((aceCount, card) => {
-    return card.rank === "A" ? aceCount + 1 : aceCount;
-  }, 0);
-  let numUserHandTwoAces = userHandTwo.cards.reduce((aceCount, card) => {
-    return card.rank === "A" ? aceCount + 1 : aceCount;
-  }, 0);
-
-  let dealerNonAces = dealerHand.cards.filter((card) => card.rank !== "A");
-  let userHandOneNonAces = userHandOne.cards.filter(
-    (card) => card.rank !== "A"
-  );
-  let userHandTwoNonAces = userHandTwo.cards.filter(
-    (card) => card.rank !== "A"
-  );
-
-  let dealerNonAcesTotal = dealerNonAces.reduce(
-    (sum, card) => sum + card.value,
-    0
-  );
-  let userHandOneNonAcesTotal = userHandOneNonAces.reduce(
-    (sum, card) => sum + card.value,
-    0
-  );
-  let userHandTwoNonAcesTotal = userHandTwoNonAces.reduce(
-    (sum, card) => sum + card.value,
-    0
-  );
-
-  switch (numDealerAces) {
-    case 0:
-      dealerHand.score = dealerNonAcesTotal;
-      break;
-    case 1:
-      if (dealerNonAcesTotal <= 10) {
-        dealerHand.score = dealerNonAcesTotal + 11;
-      } else {
-        dealerHand.score = dealerNonAcesTotal + 1;
-      }
-      break;
-    case 2: // 10 1 11
-      if (dealerNonAcesTotal <= 9) {
-        dealerHand.score = dealerNonAcesTotal + 12;
-      } else {
-        dealerHand.score = dealerNonAcesTotal + 2;
-      }
-      break;
-    case 3:
-      if (dealerNonAcesTotal <= 8) {
-        dealerHand.score = dealerNonAcesTotal + 13;
-      } else {
-        dealerHand.score = dealerNonAcesTotal + 3;
-      }
-      break;
-    case 4:
-      if (dealerNonAcesTotal <= 7) {
-        dealerHand.score = dealerNonAcesTotal + 14;
-      } else {
-        dealerHand.score = dealerNonAcesTotal + 4;
-      }
-      break;
+  if (userHandTwo.cards.length > 0) {
+    updateSingleHandScore(userHandTwo);
   }
-
-  switch (numUserHandOneAces) {
-    case 0:
-      userHandOne.score = userHandOneNonAcesTotal;
-      break;
-    case 1:
-      if (userHandOneNonAcesTotal <= 10) {
-        userHandOne.score = userHandOneNonAcesTotal + 11;
-      } else {
-        userHandOne.score = userHandOneNonAcesTotal + 1;
-      }
-      break;
-    case 2: // 10 1 11
-      if (userHandOneNonAcesTotal <= 9) {
-        userHandOne.score = userHandOneNonAcesTotal + 12;
-      } else {
-        userHandOne.score = userHandOneNonAcesTotal + 2;
-      }
-      break;
-    case 3:
-      if (userHandOneNonAcesTotal <= 8) {
-        userHandOne.score = userHandOneNonAcesTotal + 13;
-      } else {
-        userHandOne.score = userHandOneNonAcesTotal + 3;
-      }
-      break;
-    case 4:
-      if (userHandOneNonAcesTotal <= 7) {
-        userHandOne.score = userHandOneNonAcesTotal + 14;
-      } else {
-        userHandOne.score = userHandOneNonAcesTotal + 4;
-      }
-      break;
-  }
-
-  switch (numUserHandTwoAces) {
-    case 0:
-      userHandTwo.score = userHandTwoNonAcesTotal;
-      break;
-    case 1:
-      if (userHandTwoNonAcesTotal <= 10) {
-        userHandTwo.score = userHandTwoNonAcesTotal + 11;
-      } else {
-        userHandTwo.score = userHandTwoNonAcesTotal + 1;
-      }
-      break;
-    case 2: // 10 1 11
-      if (userHandTwoNonAcesTotal <= 9) {
-        userHandTwo.score = userHandTwoNonAcesTotal + 12;
-      } else {
-        userHandTwo.score = userHandTwoNonAcesTotal + 2;
-      }
-      break;
-    case 3:
-      if (userHandTwoNonAcesTotal <= 8) {
-        userHandTwo.score = userHandTwoNonAcesTotal + 13;
-      } else {
-        userHandTwo.score = userHandTwoNonAcesTotal + 3;
-      }
-      break;
-    case 4:
-      if (userHandTwoNonAcesTotal <= 7) {
-        userHandTwo.score = userHandTwoNonAcesTotal + 14;
-      } else {
-        userHandTwo.score = userHandTwoNonAcesTotal + 4;
-      }
-      break;
-  }
+  console.log(userHandTwo.score, "userHandTwo.score in updateScore");
+  console.log(userHandOne.score, "userHandOne.score in updateScore");
+  console.log(dealerHand.score, "dealerHand.score in updateScore");
 }
 
 function uiUpdateScore() {
-  userScoreElement.textContent = userHandOne.score;
-  dealerScoreElement.textContent = dealerHand.score;
+  const focusHandScore = userHandOne.isFocus
+    ? userHandOne.score.toString()
+    : userHandTwo.score.toString();
+  // const newScoreElement = document.createElement("span");
+  // newScoreElement.textContent = focusHandScore.toString();
+
+  userScoreElement.replaceChildren(focusHandScore);
+  dealerScoreElement.replaceChildren(dealerHand.score.toString());
 }
 
-function hitUser(hand = "userHandOne") {
+async function hitUser() {
   //!!!! Still Need to handle the case where user busts for instant loss
   // ifffff isn't a split hand
   // but I mean i could still just settle it as an instant loss
   // because even if dealer ends up busting you still lose wager cause you busted first
-
-  dealCard(hand);
+  const hand = userHandOne.isFocus ? userHandOne : userHandTwo;
+  // dealCard(hand);
+  const newCard = dealCard(hand);
+  console.log(
+    newCard,
+    "newCard inside hitUser right before uiAddCard(newCard)"
+  );
+  uiAddCard(hand, newCard);
   updateScore();
-  console.log(dealerHand.score, "dealerScore inside hitUser");
+
   uiUpdateScore();
   // insta loss flow if bust
-  if (userHandOne.score > 21) {
-    console.log("inside hitUser when busts - using generic . naming");
-    settleHand(hand);
+
+  if (hand.score > 21 && userHandOne.isFocus) {
+    await settleHand(hand);
+
+    if (userHandTwo.cards.length > 0) {
+      uiToggleFocusHand();
+    }
+  } else if (hand.score > 21 && userHandTwo.isFocus) {
+    console.log("inside hitUser userHandTwo.score > 21");
+    await settleHand(hand);
+    // userHandOne.score <= 21 ?
+    console.log("inside hitUser just after await settleHand()");
   }
 }
 
 function wasSplit() {
-  let split = userHandTwo.length > 0 ? true : false;
+  let split = userHandTwo.cards.length > 0 ? true : false;
   return split;
 }
 
-function stay(hand) {
-  if (wasSplit() && userHandOne.isActive) {
-    userHandOne.isActive = false;
-    userHandTwo.isActive = true;
-    // switch ui to userHandTwo
-    switchCurrentHand(userHandTwo);
-  } else if (wasSplit() && userHandTwo.isActive) {
+async function stay() {
+  uiUpdateScore(); // only calling this to get dealerScore ui updated in time
+  console.log("inside stay userHandOne.isFocus", userHandOne.isFocus);
+  console.log("inside stay userHandTwo.isFocus", userHandTwo.isFocus);
+  if (wasSplit() && userHandOne.isFocus) {
+    console.log("inside stay userHandOne.isFocus");
+
+    uiToggleFocusHand();
+  } else if (wasSplit() && userHandTwo.isFocus) {
     dealerAction();
-    // switch ui back to userHandOne
-    settleHand(userHandOne);
-    // switch ui to userHandTwo
+
+    uiToggleFocusHand();
+
+    await settleHand(userHandOne);
+
+    uiToggleFocusHand();
     settleHand(userHandTwo);
   } else {
     dealerAction();
@@ -540,17 +512,13 @@ function stay(hand) {
 
 function dealerAction() {
   while (dealerHand.score < 17) {
-    dealCard("dealerHand");
+    dealCard(dealerHand);
     updateScore();
     uiUpdateScore();
   }
 }
 
 function compareScores(userScore, blackjackMultiplier) {
-  console.log(
-    "dealer Score in compare scores(inside settleHand()):",
-    dealerHand.score
-  );
   if (blackjackMultiplier === 1.5) {
     return "win";
   }
@@ -559,10 +527,8 @@ function compareScores(userScore, blackjackMultiplier) {
   }
 
   if (userScore > 21) {
-    console.log("bust");
     return "lose";
   } else if (dealerHand.score > 21) {
-    console.log("dealer bust");
     return "win";
   } else if (userScore > dealerHand.score) {
     console.log("win");
@@ -591,11 +557,11 @@ function bankrollUpdate(outcome, blackjackMultiplier) {
   }
 }
 
-async function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
+async function settleHand(hand, blackjackMultiplier = 1) {
   // Needs work to handle split situation where 2 hands and pause after stay...
 
   const userScore =
-    hand === "userHandOne" ? userHandOne.score : userHandTwo.score;
+    hand === userHandOne ? userHandOne.score : userHandTwo.score;
   const outcome = compareScores(userScore, blackjackMultiplier);
   // do i want the bankroll logic so entwined with UI logic?
   bankrollUpdate(outcome, blackjackMultiplier);
@@ -603,9 +569,26 @@ async function settleHand(hand = "userHandOne", blackjackMultiplier = 1) {
   bankrollElement.innerHTML = bankroll;
   bankrollTab.innerHTML = bankroll;
 
-  await uiOutcome(outcome);
+  // console.log(userHandOne.isFocus, "<--------- userHandOne.isFocus");
+  // console.log(userHandTwo.isFocus, "<--------- userHandTwo.isFocus");
+  // console.log(wasSplit(), "<--------- wasSplit()");
+
+  if (wasSplit() && userHandOne.isFocus) {
+    await uiOutcome(outcome);
+    userHandTwo.isFocus = true;
+    switchSplitPreview(userHandOne);
+    switchFocusHand(userHandTwo);
+  } else if (wasSplit() && userHandTwo.isFocus) {
+    console.log("inside settleHand userHandTwo.isFocus !!!!!!!!!!!!!!");
+    await uiOutcome(outcome);
+    uiTransitionToWager();
+  } else {
+    console.log("inside settleHand else");
+    await uiOutcome(outcome);
+    uiTransitionToWager();
+  }
   // we need uiTransitionToWager() to run after uiOutcome finishes
-  uiTransitionToWager();
+
   // UI function for transition between hands view Outcome summary
   // UI function to clear away boards transition
   // UI function to set wager
@@ -637,9 +620,9 @@ function resetHand(wagerAmount) {
   // This is gross and temporary
   // Really i need to dump const userHandOne
 
-  hands.dealerHand = { cards: [], isActive: true, score: 0 };
-  hands.userHandOne = { cards: [], isActive: true, score: 0 };
-  hands.userHandTwo = { cards: [], isActive: false, score: 0 };
+  hands.dealerHand = { cards: [], isFocus: true, score: 0 };
+  hands.userHandOne = { cards: [], isFocus: true, score: 0 };
+  hands.userHandTwo = { cards: [], isFocus: false, score: 0 };
 
   hands.userHandTwo.score = 0;
 
@@ -656,13 +639,17 @@ function resetHand(wagerAmount) {
   userHandOne.score = 0;
   userHandTwo.score = 0;
   dealerHand.score = 0;
+  userHandOne.isFocus = true;
+  userHandTwo.isFocus = false;
+  dealerHand.isFocus = true;
 
   deck.splice(0, deck.length);
   deck.push(...deckStart);
 
+  splitHandElement.innerHTML = "";
+
   userHandMainElement.innerHTML = "";
   dealerHandElement.innerHTML = "";
-  // outcomeInterface.innerHTML = "";
 }
 
 // Utility functions

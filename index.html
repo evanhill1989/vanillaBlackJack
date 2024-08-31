@@ -38,6 +38,7 @@
             id="hit-btn"
             onClick="hitUser('userHandOne')"
           >
+            <!--This looks wrong, hitUser should have ambiguous params -->
             Hit
           </button>
           <div id="wager">
@@ -57,7 +58,7 @@
 
         <div id="user-board">
           <div class="hand-container">
-            <button id="split-btn" class="hidden" onClick="split()">
+            <button id="split-btn" class="visible" onClick="split()">
               Split
             </button>
             <div class="hand" id="user-hand"></div>
@@ -70,6 +71,7 @@
       </div>
 
       <h3 class="bankroll">Bankroll: $<span id="bankroll_tab"></span></h3>
+      <button onclick="uiToggleFocusHand()">ToggleFocusedHand</button>
       <div class="split-hand" id="split-hand"></div>
     </main>
 
