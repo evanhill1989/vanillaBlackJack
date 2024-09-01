@@ -148,10 +148,10 @@ function dealNewHand(event) {
   if (event) {
     event.preventDefault();
   }
-  console.log(event);
+
   wagerAmount = event.target[0].value || 100;
   const numWagerAmount = parseInt(wagerAmount);
-  console.log(numWagerAmount, "wagerAmount inside dealNewHand()");
+
   uiToggleDisplay(initialWager);
   uiToggleDisplay(gameBoard);
   dealCard(userHandOne, {
@@ -161,8 +161,8 @@ function dealNewHand(event) {
     suit: "spades",
   });
   dealCard(userHandOne, {
-    rank: "8",
-    value: 8,
+    rank: "5",
+    value: 5,
     suitEmoji: "♢",
     suit: "diamonds",
   });
@@ -185,7 +185,7 @@ function dealNewHand(event) {
   uiUpdateScore();
 
   checkForBlackjack();
-  // canSplit();
+  canSplit();
   canDouble(userHandOne.score);
   // canInsure();
 }
@@ -210,13 +210,19 @@ function uiDealHands() {
     const newCard = uiCreateCard("userHandOne", card);
     userHandMainElement.appendChild(newCard);
   });
-  dealerHand.cards.forEach((card) => {
-    const newCard = uiCreateCard("dealerHand", card);
-    dealerHandElement.appendChild(newCard);
-  });
+
+  for (let i = 0; i < dealerHand.cards.length; i++) {
+    if (i === 0) {
+      const newCard = uiCreateCard("dealerHand", dealerHand.cards[i], true);
+      dealerHandElement.appendChild(newCard);
+    } else {
+      const newCard = uiCreateCard("dealerHand", dealerHand.cards[i], false);
+      dealerHandElement.appendChild(newCard);
+    }
+  }
 }
 
-function uiCreateCard(hand, card) {
+function uiCreateCard(hand, card, isHoleCard) {
   const cardElement = document.createElement("div");
   const suitElement = document.createElement("div");
   const rightRankElement = document.createElement("div");
@@ -230,7 +236,10 @@ function uiCreateCard(hand, card) {
   suitElement.classList.add("suit");
   cardElement.classList.add("card");
 
-  if (hand === "dealerHand" && dealerHand.length === 0) {
+  // dealerHand.length is never 0 at this point because dealCard() is called before this function. It's called before this function so this function knows which cards it's creating. Maybe dealerHand.length isnt a great way to see if card === hole card ( 1st card ) anyway.
+
+  if (isHoleCard) {
+    console.log("Inside uiCreateCard checking if dealerHand!!");
     cardElement.classList.add("card-back");
     return cardElement;
   } else {
@@ -244,11 +253,8 @@ function uiCreateCard(hand, card) {
 
 function checkForBlackjack() {
   // Want to find a way to handle immediate settling better
-  // current settleHand pushes through compareScores
-  // !!! I can just make a specific helper function like settlehand but just for blackjacks
 
   if (userHandOne.score === 21 && dealerHand.score !== 21) {
-    console.log("Congrats on BlackJack!");
     settleBlackjack("win");
   }
   if (userHandOne.score === 21 && dealerHand.score === 21) {
@@ -297,16 +303,16 @@ function canDouble(handScore) {
 function double(hand = userHandOne) {
   wagerAmount = wagerAmount + wagerAmount;
   wagerElement.innerHTML = wagerAmount;
-  dealCard(hand);
-
+  const newCard = dealCard(hand);
+  uiAddCard(hand, newCard);
+  uiToggleDisplay(splitBtn);
   updateScore();
   uiUpdateScore();
-  stay(hand); // "doubling down" in live blackjack implies stay logic by default
+  stay(); // "doubling down" in live blackjack implies stay logic by default
 }
 function split() {
   userHandTwo.cards.push(userHandOne.cards.splice(1, 1)[0]);
-  uiToggleDisplay(splitBtn);
-  uiToggleDisplay(doubleBtn);
+
   uiSplitCards(userHandTwo);
   updateScore();
   uiUpdateScore();
@@ -355,7 +361,6 @@ function uiToggleFocusHand() {
   switchFocusHand(currentSplitPreview);
   switchSplitPreview(currentFocus);
   toggleFocusHand(); //
-  console.log("focus hand toggled. in uiToggleFocusHand");
 }
 
 function toggleFocusHand() {
@@ -425,15 +430,12 @@ function updateSingleHandScore(hand) {
 }
 function updateScore() {
   updateSingleHandScore(dealerHand);
-
   updateSingleHandScore(userHandOne);
+  updateSingleHandScore(userHandTwo);
 
   if (userHandTwo.cards.length > 0) {
     updateSingleHandScore(userHandTwo);
   }
-  console.log(userHandTwo.score, "userHandTwo.score in updateScore");
-  console.log(userHandOne.score, "userHandOne.score in updateScore");
-  console.log(dealerHand.score, "dealerHand.score in updateScore");
 }
 
 function uiUpdateScore() {
@@ -455,10 +457,8 @@ async function hitUser() {
   const hand = userHandOne.isFocus ? userHandOne : userHandTwo;
   // dealCard(hand);
   const newCard = dealCard(hand);
-  console.log(
-    newCard,
-    "newCard inside hitUser right before uiAddCard(newCard)"
-  );
+
+  uiToggleDisplay(doubleBtn);
   uiAddCard(hand, newCard);
   updateScore();
 
@@ -472,10 +472,7 @@ async function hitUser() {
       uiToggleFocusHand();
     }
   } else if (hand.score > 21 && userHandTwo.isFocus) {
-    console.log("inside hitUser userHandTwo.score > 21");
     await settleHand(hand);
-    // userHandOne.score <= 21 ?
-    console.log("inside hitUser just after await settleHand()");
   }
 }
 
@@ -486,11 +483,9 @@ function wasSplit() {
 
 async function stay() {
   uiUpdateScore(); // only calling this to get dealerScore ui updated in time
-  console.log("inside stay userHandOne.isFocus", userHandOne.isFocus);
-  console.log("inside stay userHandTwo.isFocus", userHandTwo.isFocus);
+  // uiToggleDisplay(splitBtn);
+  uiToggleDisplay(doubleBtn);
   if (wasSplit() && userHandOne.isFocus) {
-    console.log("inside stay userHandOne.isFocus");
-
     uiToggleFocusHand();
   } else if (wasSplit() && userHandTwo.isFocus) {
     dealerAction();
@@ -510,9 +505,20 @@ async function stay() {
   // if userHandTwo is active then switch that hand to main UI
 }
 
+function flipDealerCardUp() {
+  // feels a little klunky. Should probably just be handled by flipping a state or CSS class
+  const newElementsArray = [];
+  dealerHand.cards.forEach((card) => {
+    newElementsArray.push(uiCreateCard("dealerHand", card, false)); // uiCreateCard
+  });
+  dealerHandElement.replaceChildren(...newElementsArray);
+}
+
 function dealerAction() {
+  flipDealerCardUp();
   while (dealerHand.score < 17) {
-    dealCard(dealerHand);
+    let newCard = dealCard(dealerHand);
+    uiAddCard("dealerHand", newCard);
     updateScore();
     uiUpdateScore();
   }
@@ -531,18 +537,49 @@ function compareScores(userScore, blackjackMultiplier) {
   } else if (dealerHand.score > 21) {
     return "win";
   } else if (userScore > dealerHand.score) {
-    console.log("win");
+    ("win");
     return "win";
   } else if (userScore < dealerHand.score) {
-    console.log("lose");
     return "lose";
   } else if (userScore === dealerHand.score) {
-    console.log("push");
     return "push";
   } else {
     console.error("error in compareScores");
     return "error";
   }
+}
+
+async function settleHand(hand, blackjackMultiplier = 1) {
+  // Needs work to handle split situation where 2 hands and pause after stay...
+  console.log("settleHand() called");
+  console.log(bankroll, "bankroll inside settleHand()");
+  const userScore =
+    hand === userHandOne ? userHandOne.score : userHandTwo.score;
+  const outcome = compareScores(userScore, blackjackMultiplier);
+  // do i want the bankroll logic so entwined with UI logic?
+  bankrollUpdate(outcome, blackjackMultiplier);
+
+  bankrollElement.innerHTML = bankroll;
+  bankrollTab.innerHTML = bankroll;
+
+  if (wasSplit() && userHandOne.isFocus) {
+    await uiOutcome(outcome);
+    userHandTwo.isFocus = true;
+    switchSplitPreview(userHandOne);
+    switchFocusHand(userHandTwo);
+  } else if (wasSplit() && userHandTwo.isFocus) {
+    await uiOutcome(outcome);
+    uiTransitionToWager();
+  } else {
+    await uiOutcome(outcome);
+    uiTransitionToWager();
+  }
+  // we need uiTransitionToWager() to run after uiOutcome finishes
+
+  // UI function for transition between hands view Outcome summary
+  // UI function to clear away boards transition
+  // UI function to set wager
+  // UI function to choose deal new hand
 }
 
 function bankrollUpdate(outcome, blackjackMultiplier) {
@@ -555,44 +592,6 @@ function bankrollUpdate(outcome, blackjackMultiplier) {
   } else {
     console.error("error in bankrollUpdate");
   }
-}
-
-async function settleHand(hand, blackjackMultiplier = 1) {
-  // Needs work to handle split situation where 2 hands and pause after stay...
-
-  const userScore =
-    hand === userHandOne ? userHandOne.score : userHandTwo.score;
-  const outcome = compareScores(userScore, blackjackMultiplier);
-  // do i want the bankroll logic so entwined with UI logic?
-  bankrollUpdate(outcome, blackjackMultiplier);
-
-  bankrollElement.innerHTML = bankroll;
-  bankrollTab.innerHTML = bankroll;
-
-  // console.log(userHandOne.isFocus, "<--------- userHandOne.isFocus");
-  // console.log(userHandTwo.isFocus, "<--------- userHandTwo.isFocus");
-  // console.log(wasSplit(), "<--------- wasSplit()");
-
-  if (wasSplit() && userHandOne.isFocus) {
-    await uiOutcome(outcome);
-    userHandTwo.isFocus = true;
-    switchSplitPreview(userHandOne);
-    switchFocusHand(userHandTwo);
-  } else if (wasSplit() && userHandTwo.isFocus) {
-    console.log("inside settleHand userHandTwo.isFocus !!!!!!!!!!!!!!");
-    await uiOutcome(outcome);
-    uiTransitionToWager();
-  } else {
-    console.log("inside settleHand else");
-    await uiOutcome(outcome);
-    uiTransitionToWager();
-  }
-  // we need uiTransitionToWager() to run after uiOutcome finishes
-
-  // UI function for transition between hands view Outcome summary
-  // UI function to clear away boards transition
-  // UI function to set wager
-  // UI function to choose deal new hand
 }
 
 function uiOutcome(outcome) {
