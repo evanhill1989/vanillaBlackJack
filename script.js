@@ -239,7 +239,6 @@ function uiCreateCard(hand, card, isHoleCard) {
   // dealerHand.length is never 0 at this point because dealCard() is called before this function. It's called before this function so this function knows which cards it's creating. Maybe dealerHand.length isnt a great way to see if card === hole card ( 1st card ) anyway.
 
   if (isHoleCard) {
-    console.log("Inside uiCreateCard checking if dealerHand!!");
     cardElement.classList.add("card-back");
     return cardElement;
   } else {
@@ -296,7 +295,7 @@ function canSplit() {
 
 function canDouble(handScore) {
   if (handScore >= 9 && handScore <= 11) {
-    uiToggleDisplay(doubleBtn);
+    // uiToggleDisplay(doubleBtn);
   }
 }
 
@@ -308,7 +307,7 @@ function double(hand = userHandOne) {
   uiToggleDisplay(splitBtn);
   updateScore();
   uiUpdateScore();
-  stay(); // "doubling down" in live blackjack implies stay logic by default
+  stay(hand); // "doubling down" in live blackjack implies stay logic by default
 }
 function split() {
   userHandTwo.cards.push(userHandOne.cards.splice(1, 1)[0]);
@@ -458,7 +457,7 @@ async function hitUser() {
   // dealCard(hand);
   const newCard = dealCard(hand);
 
-  uiToggleDisplay(doubleBtn);
+  // uiToggleDisplay(doubleBtn);
   uiAddCard(hand, newCard);
   updateScore();
 
@@ -482,9 +481,10 @@ function wasSplit() {
 }
 
 async function stay() {
+  const hand = userHandOne.isFocus ? userHandOne : userHandTwo;
   uiUpdateScore(); // only calling this to get dealerScore ui updated in time
   // uiToggleDisplay(splitBtn);
-  uiToggleDisplay(doubleBtn);
+  // uiToggleDisplay(doubleBtn);
   if (wasSplit() && userHandOne.isFocus) {
     uiToggleFocusHand();
   } else if (wasSplit() && userHandTwo.isFocus) {
@@ -498,7 +498,7 @@ async function stay() {
     settleHand(userHandTwo);
   } else {
     dealerAction();
-    settleHand();
+    settleHand(hand);
   }
 
   //   flipDealerCardUp();
@@ -524,13 +524,26 @@ function dealerAction() {
   }
 }
 
-function compareScores(userScore, blackjackMultiplier) {
+function compareScores(hand, blackjackMultiplier) {
+  // hand gets passed through several functions to get here... maybe that's ok- it's not like it's really that trivial to any of the functions that pass it through.
+
+  console.log(hand, "hand in compareScores top");
+  const userScore =
+    hand === userHandOne ? userHandOne.score : userHandTwo.score;
+
   if (blackjackMultiplier === 1.5) {
     return "win";
   }
   if (blackjackMultiplier === 0) {
     return "push";
   }
+
+  // where does userScore come from?
+  // maybe userScore is behind?
+
+  console.log(userScore, "userScore");
+  console.log(userHandOne.score, "userHandOne.score");
+  console.log(dealerHand.score, "dealerHand.score");
 
   if (userScore > 21) {
     return "lose";
@@ -551,11 +564,8 @@ function compareScores(userScore, blackjackMultiplier) {
 
 async function settleHand(hand, blackjackMultiplier = 1) {
   // Needs work to handle split situation where 2 hands and pause after stay...
-  console.log("settleHand() called");
-  console.log(bankroll, "bankroll inside settleHand()");
-  const userScore =
-    hand === userHandOne ? userHandOne.score : userHandTwo.score;
-  const outcome = compareScores(userScore, blackjackMultiplier);
+
+  const outcome = compareScores(hand, blackjackMultiplier);
   // do i want the bankroll logic so entwined with UI logic?
   bankrollUpdate(outcome, blackjackMultiplier);
 
