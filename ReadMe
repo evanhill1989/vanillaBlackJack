@@ -5,20 +5,14 @@ Doesn't mean i agree that frameworks using magic to remove 100% of the friction 
 There are negative tradeoffs even going from vanilla JS to React. So I imagine
 there are negative tradeoffs going from React to Svelte
 
-All the split scenarios
+All the split scenarios for settleHand
 
-userHandOne busts
-
-- userHandTwo busts
-  -userHandTwo stays
-  - Win/Lose/Push
-
-userHandOne stays
-
-- userHandTwo busts
-- userHandTwo stays
-  - userHandOne settles Win/Lose/Push toggle to userHandTwo
-  -
+1. UH1 stayed, UH2 stayed, UH1 SETTLING UH2 settleQueue'd
+2. UH1 stayed, UH2 stayed, UH1 settled, UH2 SETTLING
+3. UH1 stayed, UH2 busted is SETTLING, UH1 settleQueue'd
+4. UH1 stayed, UH2 busted + settled, UH1 SETTLING
+5. UH1 busted is SETTLING, UH2 focus toggled action remains
+6. UH1 busted settled, UH2 is SETTLING
 
 Unanswered questions:
 What's better practice - jamming as much as you can into the HTML and just

@@ -56,7 +56,7 @@ const deckStart = [
   { rank: "A", value: 0, suitEmoji: "♤", suit: "spades" },
 ];
 
-//NEXT STEP -- Left off working on hitUser. Reset Hand isn't working at all...
+//NEXT STEP -- Toggle focus hand is delayed by 1 step somehow. in middle of switching params.
 // Refactor to handle which userHand as prop for more generic functions...
 /* UI functions List:
   -- user blackjack banner
@@ -320,6 +320,8 @@ function split() {
   uiUpdateScore();
 
   uiToggleDisplay(splitBtn);
+  console.log(userHandOne.isFocus, "UH1 IS FOCUS");
+  console.log(userHandTwo.isFocus, "UH2 IS FOCUS");
 }
 
 function uiSplitCards(hand) {
@@ -356,22 +358,29 @@ function switchFocusHand(hand) {
   userHandMainElement.replaceChildren(...newHandArray);
 }
 
-function uiToggleFocusHand() {
+function uiToggleFocusHandToFrom(toHand, fromHand) {
+  toggleFocusHand();
+  console.log(userHandOne.isFocus, "UH1 IS FOCUS");
+  console.log(userHandTwo.isFocus, "UH2 IS FOCUS");
   const currentFocus = userHandOne.isFocus ? userHandOne : userHandTwo;
   const currentSplitPreview = userHandOne.isFocus ? userHandTwo : userHandOne;
 
-  switchFocusHand(currentSplitPreview);
-  switchSplitPreview(currentFocus);
-  toggleFocusHand(); //
+  switchFocusHand(toHand);
+  switchSplitPreview(fromHand);
+  console.log("uiToggleFocusHand has run and finished");
+
+  //
 }
 
 function toggleFocusHand() {
   if (userHandOne.isFocus) {
     userHandOne.isFocus = false;
     userHandTwo.isFocus = true;
-  } else {
+  } else if (userHandTwo.isFocus) {
     userHandOne.isFocus = true;
     userHandTwo.isFocus = false;
+  } else {
+    console.log("some kind of error where neither hand had .isFocus");
   }
 
   uiUpdateScore();
@@ -457,31 +466,14 @@ async function hitUser() {
   // but I mean i could still just settle it as an instant loss
   // because even if dealer ends up busting you still lose wager cause you busted first
   const hand = userHandOne.isFocus ? userHandOne : userHandTwo;
-  // dealCard(hand);
   const newCard = dealCard(hand);
 
-  // uiToggleDisplay(doubleBtn);
   uiAddCard(hand, newCard);
   updateScore();
-
   uiUpdateScore();
-  // insta loss flow if bust
 
-  if (hand.score > 21 && userHandOne.isFocus && !userHandOne.isSettled) {
+  if (hand.score > 21) {
     await settleHand(hand);
-
-    if (userHandTwo.cards.length > 0) {
-      uiToggleFocusHand();
-    }
-  }
-  // if userHandTwo busts
-  else if (hand.score > 21 && userHandTwo.isFocus) {
-    await settleHand(userHandTwo);
-    if (!userHandOne.isSettled) {
-      uiToggleFocusHand();
-      await settleHand(userHandOne);
-    }
-  } else {
   }
 }
 
@@ -538,7 +530,6 @@ function dealerAction() {
 function compareScores(hand, blackjackMultiplier) {
   // hand gets passed through several functions to get here... maybe that's ok- it's not like it's really that trivial to any of the functions that pass it through.
 
-  console.log(hand, "hand in compareScores top");
   const userScore =
     hand === userHandOne ? userHandOne.score : userHandTwo.score;
 
@@ -570,48 +561,62 @@ function compareScores(hand, blackjackMultiplier) {
 }
 
 async function settleHand(hand, blackjackMultiplier = 1) {
-  if (userHandOne.isSettled && userHandTwo.isSettled) {
-    uiTransitionToWager();
-    return;
-  }
+  // hand === the hand being settled triggered by stay or hitUser
+  console.log("settleHand has started");
 
   const outcome = compareScores(hand, blackjackMultiplier);
 
   bankrollUpdate(outcome, blackjackMultiplier);
 
-  if (wasSplit() && userHandOne.isFocus) {
-    await uiOutcome(outcome);
-    if (userHandTwo.isSettled) {
-      uiTransitionToWager();
-    } else if (!userHandTwo.isSettled && userHandOne.score <= 21) {
+  if (hand === userHandOne) {
+    console.log("hand should equal userHandOne here...");
+    // 1. UH1 stayed, UH2 stayed, UH1 SETTLING UH2 settleQueue'd
+    // 4. UH1 stayed, UH2 busted + settled, UH1 SETTLING
+    // 5. UH1 busted is SETTLING, UH2 focus toggled action remains
+    if (userHandOne.score <= 21 && !userHandTwo.isSettled) {
+      // Scenario 1 from ReadMe
+      await uiOutcome(outcome);
+      userHandOne.isSettled = true;
       uiToggleFocusHand();
-      await settleHand(userHandTwo);
+      settleHand(userHandTwo);
+    } else if (userHandTwo.score > 21) {
+      // Scenario 4 from ReadMe
+      await uiOutcome(outcome);
+      userHandOne.isSettled = true;
       uiTransitionToWager();
-    } else if (!userHandTwo.isSettled && userHandOne.score > 21) {
-      // uiToggleFocusHand();
-      console.log(
-        "where i expect to end up after busting userHandOne during a split"
-      );
-      //why don't we end up here after busting userHandOne?
-    } else {
-      console.log("Error handler in settleHand");
-    }
-  } else if (wasSplit() && userHandTwo.isFocus) {
-    await uiOutcome(outcome);
-    if (userHandOne.isSettled) {
-      uiTransitionToWager();
-    } else if (!userHandOne.isSettled && userHandTwo.score > 21) {
+    } else if (userHandOne.score > 21) {
+      // Scenario 5 from ReadMe
+      // await uiOutcome(outcome);
+      console.log("Scenario 5 should produce this loge");
       uiToggleFocusHand();
-      await settleHand(userHandOne);
+      userHandOne.isSettled = true;
     } else {
-      console.log("Error handler in settleHand");
+      console.log("Probably an error ");
     }
-  } else {
-    await uiOutcome(outcome);
-    uiTransitionToWager();
+  } else if (hand === userHandTwo) {
+    //     2. UH1 stayed, UH2 stayed, UH1 settled, UH2 SETTLING
+    // 3. UH1 stayed, UH2 busted is SETTLING, UH1 settleQueue'd
+    // 6. UH1 busted settled, UH2 is SETTLING
+    if (userHandTwo.score <= 21) {
+      // Scenario 2 from ReadMe
+      await uiOutcome(outcome);
+      userHandTwo.isSettled = true;
+      uiTransitionToWager();
+    } else if (userHandTwo.score > 21 && !userHandOne.isSettled) {
+      // 3. UH1 stayed, UH2 busted is SETTLING, UH1 settleQueue'd
+      await uiOutcome(outcome);
+      userHandTwo.isSettled = true;
+      uiToggleFocusHand();
+      settleHand(userHandOne);
+    } else if (userHandOne.isSettled) {
+      // 6. UH1 busted settled, UH2 is SETTLING
+      await uiOutcome(outcome);
+      userHandTwo.isSettled = true;
+      uiTransitionToWager();
+    }
   }
 
-  hand.isSettled = true;
+  console.log("settleHand has ended");
 }
 
 function bankrollUpdate(outcome, blackjackMultiplier) {
@@ -629,7 +634,6 @@ function bankrollUpdate(outcome, blackjackMultiplier) {
 }
 
 function uiOutcome(outcome) {
-  console.log("uiOutcome is", outcome);
   return new Promise((resolve) => {
     // Temporary timed transition UI between current hand and wagering next hand
     uiToggleDisplay(outcomeElement); // Displays outcome element
@@ -688,6 +692,7 @@ function resetHand(wagerAmount) {
 
   userHandMainElement.innerHTML = "";
   dealerHandElement.innerHTML = "";
+  console.log("resetHand has run");
 }
 
 // Utility functions
