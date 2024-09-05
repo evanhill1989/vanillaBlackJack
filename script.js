@@ -128,18 +128,21 @@ const hands = {
     isFocus: true,
     score: 0,
     isSettled: false,
+    name: "dealerHand",
   },
   userHandOne: {
     cards: [],
     isFocus: true,
     score: 0,
     isSettled: false,
+    name: "userHandOne",
   },
   userHandTwo: {
     cards: [],
     isFocus: false,
     score: 0,
     isSettled: false,
+    name: "userHandTwo",
   },
 };
 
@@ -188,8 +191,8 @@ function dealNewHand(event) {
   uiUpdateScore();
 
   checkForBlackjack();
-  canSplit();
-  canDouble(userHandOne.score);
+  checkIfCanSplit();
+  checkIfCanDouble(userHandOne.score);
   // canInsure();
 }
 
@@ -290,13 +293,13 @@ function uiAddCard(hand, card) {
   }
 }
 
-function canSplit() {
+function checkIfCanSplit() {
   if (userHandOne.cards[0].rank === userHandOne.cards[1].rank) {
     uiToggleDisplay(splitBtn);
   }
 }
 
-function canDouble(handScore) {
+function checkIfCanDouble(handScore) {
   if (handScore >= 9 && handScore <= 11) {
     // uiToggleDisplay(doubleBtn);
   }
@@ -326,7 +329,7 @@ function split() {
 
 function uiSplitCards(hand) {
   userHandMainElement.removeChild(userHandMainElement.lastChild);
-  switchSplitPreview(hand);
+  switchSplitPreviewTo(hand);
 }
 
 function uiCreateSplitCard(card) {
@@ -338,7 +341,7 @@ function uiCreateSplitCard(card) {
   return newCard;
 }
 
-function switchSplitPreview(hand) {
+function switchSplitPreviewTo(hand) {
   const newHandArray = [];
   hand.cards.forEach((card) => {
     const newCard = uiCreateSplitCard(card);
@@ -348,31 +351,39 @@ function switchSplitPreview(hand) {
   splitHandElement.replaceChildren(...newHandArray);
 }
 
-function switchFocusHand(hand) {
+function switchFocusHandTo(hand) {
   // switches TO "hand"
   const newHandArray = []; /* */
   hand.cards.forEach((card) => {
     const newCard = uiCreateCard("userHandOne", card);
     newHandArray.push(newCard);
   });
+
   userHandMainElement.replaceChildren(...newHandArray);
 }
 
-function uiToggleFocusHandToFrom(toHand, fromHand) {
-  toggleFocusHand();
-  console.log(userHandOne.isFocus, "UH1 IS FOCUS");
-  console.log(userHandTwo.isFocus, "UH2 IS FOCUS");
+function toggleFocusHandToFrom(toHand, fromHand) {
+  toggleIsFocus();
+
   const currentFocus = userHandOne.isFocus ? userHandOne : userHandTwo;
   const currentSplitPreview = userHandOne.isFocus ? userHandTwo : userHandOne;
 
-  switchFocusHand(toHand);
-  switchSplitPreview(fromHand);
-  console.log("uiToggleFocusHand has run and finished");
+  console.log(
+    currentFocus.name,
+    "=== CURRENT FOCUS",
+    toHand,
+    "=== toHand",
+    fromHand,
+    "=== fromHand"
+  );
+
+  switchFocusHandTo(toHand);
+  switchSplitPreviewTo(fromHand);
 
   //
 }
 
-function toggleFocusHand() {
+function toggleIsFocus() {
   if (userHandOne.isFocus) {
     userHandOne.isFocus = false;
     userHandTwo.isFocus = true;
@@ -490,7 +501,8 @@ async function stay() {
 
   if (!wasSplit()) {
     dealerAction();
-    settleHand(hand);
+    await settleHand(hand);
+    uiTransitionToWager();
   } else if (wasSplit()) {
     splitStay();
   }
@@ -498,13 +510,20 @@ async function stay() {
 
 async function splitStay() {
   if (userHandOne.isFocus) {
-    uiToggleFocusHand();
-  } else if (userHandTwo.isFocus) {
-    uiToggleFocusHand();
+    console.log("we should run this if first from splitStay");
+    toggleFocusHandToFrom(userHandTwo, userHandOne);
+  } else if (userHandTwo.isFocus && userHandOne.score > 21) {
+    dealerAction();
+    await settleHand(userHandTwo);
+  } else if (userHandTwo.isFocus && !userHandOne.isSettled) {
+    console.log("we should end up in the last else if from splitStay");
+    toggleFocusHandToFrom(userHandOne, userHandTwo);
     dealerAction();
     await settleHand(userHandOne);
-    uiToggleFocusHand();
+    toggleFocusHandToFrom(userHandTwo, userHandOne);
     await settleHand(userHandTwo);
+  } else {
+    console.log("Something went wrong");
   }
 }
 
@@ -518,6 +537,8 @@ function flipDealerCardUp() {
 }
 
 function dealerAction() {
+  updateScore();
+  uiUpdateScore();
   flipDealerCardUp();
   while (dealerHand.score < 17) {
     let newCard = dealCard(dealerHand);
@@ -562,25 +583,30 @@ function compareScores(hand, blackjackMultiplier) {
 
 async function settleHand(hand, blackjackMultiplier = 1) {
   // hand === the hand being settled triggered by stay or hitUser
-  console.log("settleHand has started");
 
   const outcome = compareScores(hand, blackjackMultiplier);
 
   bankrollUpdate(outcome, blackjackMultiplier);
-
-  if (hand === userHandOne) {
-    console.log("hand should equal userHandOne here...");
+  if (!wasSplit()) {
+    await uiOutcome(outcome);
+    userHandOne.isSettled = true;
+    uiTransitionToWager();
+  } else if (hand === userHandOne) {
     // 1. UH1 stayed, UH2 stayed, UH1 SETTLING UH2 settleQueue'd
     // 4. UH1 stayed, UH2 busted + settled, UH1 SETTLING
     // 5. UH1 busted is SETTLING, UH2 focus toggled action remains
     if (userHandOne.score <= 21 && !userHandTwo.isSettled) {
       // Scenario 1 from ReadMe
+      console.log("Scenario 1 should produce this loge");
       await uiOutcome(outcome);
       userHandOne.isSettled = true;
-      uiToggleFocusHand();
-      settleHand(userHandTwo);
+      toggleFocusHandToFrom(userHandTwo, userHandOne);
+
+      // settleHand(userHandTwo); // recursion means this first outer settle hand
+      // // won't "finish" until settleHand(userHandTwo) finishes
     } else if (userHandTwo.score > 21) {
       // Scenario 4 from ReadMe
+      console.log("Scenario 4 should produce this loge");
       await uiOutcome(outcome);
       userHandOne.isSettled = true;
       uiTransitionToWager();
@@ -588,7 +614,8 @@ async function settleHand(hand, blackjackMultiplier = 1) {
       // Scenario 5 from ReadMe
       // await uiOutcome(outcome);
       console.log("Scenario 5 should produce this loge");
-      uiToggleFocusHand();
+      await uiOutcome(outcome);
+      toggleFocusHandToFrom(userHandTwo, userHandOne);
       userHandOne.isSettled = true;
     } else {
       console.log("Probably an error ");
@@ -597,26 +624,35 @@ async function settleHand(hand, blackjackMultiplier = 1) {
     //     2. UH1 stayed, UH2 stayed, UH1 settled, UH2 SETTLING
     // 3. UH1 stayed, UH2 busted is SETTLING, UH1 settleQueue'd
     // 6. UH1 busted settled, UH2 is SETTLING
-    if (userHandTwo.score <= 21) {
-      // Scenario 2 from ReadMe
-      await uiOutcome(outcome);
+    if (userHandTwo.score <= 21 && userHandOne.isSettled) {
+      // adding && userHandOne.isSettled to condition statement for clarity, but leaving it off should change nothing
+      // we jump in here twice somehow...
+      // because settleHand sends us here immediately
+      // once the 2nd settleHand finishes correctly
+      // the first settleHand that started with hand === userHandOne tries to finish
+      // but now the state has been changed and it's able to jump in here
+
+      console.log("Scenario 2 should produce this loge");
+      await uiOutcome(outcome, hand);
       userHandTwo.isSettled = true;
       uiTransitionToWager();
     } else if (userHandTwo.score > 21 && !userHandOne.isSettled) {
       // 3. UH1 stayed, UH2 busted is SETTLING, UH1 settleQueue'd
+      console.log("Scenario 3 should produce this loge");
       await uiOutcome(outcome);
       userHandTwo.isSettled = true;
-      uiToggleFocusHand();
-      settleHand(userHandOne);
+      toggleFocusHandToFrom(userHandOne, userHandTwo);
+      settleHand(userHandOne); // recursion that's not buggy
     } else if (userHandOne.isSettled) {
       // 6. UH1 busted settled, UH2 is SETTLING
+      console.log("Scenario 6 should produce this loge");
       await uiOutcome(outcome);
       userHandTwo.isSettled = true;
       uiTransitionToWager();
+    } else {
+      console.log("Probably an error ");
     }
   }
-
-  console.log("settleHand has ended");
 }
 
 function bankrollUpdate(outcome, blackjackMultiplier) {
@@ -648,13 +684,17 @@ function uiOutcome(outcome) {
 function uiTransitionToWager() {
   // moving from wager view to deal view
   // the UI inside will contain the deal button which will call the dealNewHand function
+  // console.log("uiTransitionToWager has started");
   uiToggleDisplay(gameBoard);
   uiToggleDisplay(initialWager);
   initialWager.classList.add("initial-wager");
   resetHand();
+
+  // console.log("uiTransitionToWager has ended");
 }
 
 function resetHand(wagerAmount) {
+  console.log("resetHand has started");
   // This is gross and temporary
   // Really i need to dump const userHandOne
 
