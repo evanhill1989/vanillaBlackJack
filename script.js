@@ -186,7 +186,7 @@ function dealNewHand(event) {
     suit: "clubs",
   });
 
-  uiDealHands();
+  // uiDealHands();
   updateScore();
   uiUpdateScore();
 
@@ -200,33 +200,43 @@ function dealCard(hand, staticCardForTesting) {
   const randomCard = deck[Math.ceil(Math.random() * deck.length) - 1];
   if (hand === userHandOne) {
     userHandOne.cards.push(staticCardForTesting || randomCard);
+    const newCard = uiCreateCard(
+      "userHandOne",
+      staticCardForTesting || randomCard
+    );
+    userHandMainElement.appendChild(newCard);
   } else if (hand === userHandTwo) {
     userHandTwo.cards.push(staticCardForTesting || randomCard);
   } else {
     dealerHand.cards.push(staticCardForTesting || randomCard);
+    const newCard = uiCreateCard(
+      "dealerHand",
+      staticCardForTesting || randomCard
+    );
+    dealerHandElement.appendChild(newCard);
   }
   updateRemainingDeck(staticCardForTesting || randomCard);
 
   return randomCard;
 }
 
-function uiDealHands() {
-  // will work on realistic deal timing later
-  userHandOne.cards.forEach((card) => {
-    const newCard = uiCreateCard("userHandOne", card);
-    userHandMainElement.appendChild(newCard);
-  });
+// function uiDealHands() {
+//   // will work on realistic deal timing later
+//   userHandOne.cards.forEach((card) => {
+//     const newCard = uiCreateCard("userHandOne", card);
+//     userHandMainElement.appendChild(newCard);
+//   });
 
-  for (let i = 0; i < dealerHand.cards.length; i++) {
-    if (i === 0) {
-      const newCard = uiCreateCard("dealerHand", dealerHand.cards[i], true);
-      dealerHandElement.appendChild(newCard);
-    } else {
-      const newCard = uiCreateCard("dealerHand", dealerHand.cards[i], false);
-      dealerHandElement.appendChild(newCard);
-    }
-  }
-}
+//   for (let i = 0; i < dealerHand.cards.length; i++) {
+//     if (i === 0) {
+//       const newCard = uiCreateCard("dealerHand", dealerHand.cards[i], true);
+//       dealerHandElement.appendChild(newCard);
+//     } else {
+//       const newCard = uiCreateCard("dealerHand", dealerHand.cards[i], false);
+//       dealerHandElement.appendChild(newCard);
+//     }
+//   }
+// }
 
 function uiCreateCard(hand, card, isHoleCard) {
   const cardElement = document.createElement("div");
@@ -308,8 +318,8 @@ function checkIfCanDouble(handScore) {
 function double(hand = userHandOne) {
   wagerAmount = wagerAmount + wagerAmount;
   wagerElement.innerHTML = wagerAmount;
-  const newCard = dealCard(hand);
-  uiAddCard(hand, newCard);
+  dealCard(hand);
+
   uiToggleDisplay(splitBtn);
   updateScore();
   uiUpdateScore();
@@ -479,7 +489,6 @@ async function hitUser() {
   const hand = userHandOne.isFocus ? userHandOne : userHandTwo;
   const newCard = dealCard(hand);
 
-  uiAddCard(hand, newCard);
   updateScore();
   uiUpdateScore();
 
@@ -502,7 +511,6 @@ async function stay() {
   if (!wasSplit()) {
     dealerAction();
     await settleHand(hand);
-    uiTransitionToWager();
   } else if (wasSplit()) {
     splitStay();
   }
@@ -542,7 +550,7 @@ function dealerAction() {
   flipDealerCardUp();
   while (dealerHand.score < 17) {
     let newCard = dealCard(dealerHand);
-    uiAddCard("dealerHand", newCard);
+
     updateScore();
     uiUpdateScore();
   }
@@ -588,9 +596,11 @@ async function settleHand(hand, blackjackMultiplier = 1) {
 
   bankrollUpdate(outcome, blackjackMultiplier);
   if (!wasSplit()) {
+    console.log("!split hands should run here");
     await uiOutcome(outcome);
+
+    uiTransitionToWager("if !wasSplit top of settleHand");
     userHandOne.isSettled = true;
-    uiTransitionToWager();
   } else if (hand === userHandOne) {
     // 1. UH1 stayed, UH2 stayed, UH1 SETTLING UH2 settleQueue'd
     // 4. UH1 stayed, UH2 busted + settled, UH1 SETTLING
@@ -609,7 +619,7 @@ async function settleHand(hand, blackjackMultiplier = 1) {
       console.log("Scenario 4 should produce this loge");
       await uiOutcome(outcome);
       userHandOne.isSettled = true;
-      uiTransitionToWager();
+      uiTransitionToWager("scenario4");
     } else if (userHandOne.score > 21) {
       // Scenario 5 from ReadMe
       // await uiOutcome(outcome);
@@ -635,7 +645,7 @@ async function settleHand(hand, blackjackMultiplier = 1) {
       console.log("Scenario 2 should produce this loge");
       await uiOutcome(outcome, hand);
       userHandTwo.isSettled = true;
-      uiTransitionToWager();
+      uiTransitionToWager("scenario2");
     } else if (userHandTwo.score > 21 && !userHandOne.isSettled) {
       // 3. UH1 stayed, UH2 busted is SETTLING, UH1 settleQueue'd
       console.log("Scenario 3 should produce this loge");
@@ -648,7 +658,7 @@ async function settleHand(hand, blackjackMultiplier = 1) {
       console.log("Scenario 6 should produce this loge");
       await uiOutcome(outcome);
       userHandTwo.isSettled = true;
-      uiTransitionToWager();
+      uiTransitionToWager("scenario6");
     } else {
       console.log("Probably an error ");
     }
@@ -681,14 +691,16 @@ function uiOutcome(outcome) {
     }, 3000); // 3-second delay
   });
 }
-function uiTransitionToWager() {
+function uiTransitionToWager(runningFrom) {
   // moving from wager view to deal view
   // the UI inside will contain the deal button which will call the dealNewHand function
-  // console.log("uiTransitionToWager has started");
+
+  console.log("uiTransitionToWager has started", runningFrom);
   uiToggleDisplay(gameBoard);
   uiToggleDisplay(initialWager);
   initialWager.classList.add("initial-wager");
   resetHand();
+  console.log("uiTransitionToWager has ended, runningFrom:", runningFrom);
 
   // console.log("uiTransitionToWager has ended");
 }
