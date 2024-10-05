@@ -3,81 +3,97 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      rel="stylesheet"
+    />
+
     <link rel="stylesheet" href="styles.css" />
     <title>Document</title>
   </head>
-  <body>
+  <body class="text-white">
     <div class="hidden" id="outcome">
       <span id="outcome-message"><h2>outcome</h2></span>
     </div>
-    <main>
-      <div class="visible" id="initial-wager">
-        <form onsubmit="dealNewHand(event)">
-          <label for="wager-input">Wager Amount</label>
-          <input type="number" id="wager-input" name="wager-input" />
-          <button type="submit">New Hand</button>
-        </form>
-        <h3 class="">Available Bankroll: $<span id="bankroll"></span></h3>
-      </div>
+    <main class="center">
+      <div class="container grid">
+        <div class="visible" id="initial-wager">
+          <form class="wager-form" onsubmit="dealNewHand(event)">
+            <div class="wager-label-input">
+              <label for="wager-input">Wager:</label>
+              <input type="number" id="wager-input" name="wager-input" />
+            </div>
 
-      <div class="hidden" id="game-board">
-        <div id="dealer-board">
-          <div class="hand-container">
-            <div class="hand" id="dealer-hand"></div>
-          </div>
-
-          <div class="score dealer-score">
-            <h4>DealerScore</h4>
-            <span id="dealer_score"></span>
-          </div>
-        </div>
-
-        <div class="in-hand-actions">
-          <button
-            class="btn-action"
-            id="hit-btn"
-            onClick="hitUser('userHandOne')"
-          >
-            <!--This looks wrong, hitUser should have ambiguous params -->
-            Hit
-          </button>
-          <div id="wager">
-            <button class="visible" id="double-btn" onClick="double()">
-              Double Down
+            <button
+              class="button-primary fs-600 fw-700 uppercase"
+              type="submit"
+            >
+              Deal
             </button>
-            Wager: $<span id="wager_amount"></span>
-          </div>
-          <button
-            class="btn-action"
-            id="stay-btn"
-            onClick="stay('userHandOne')"
-          >
-            Stay
-          </button>
+          </form>
         </div>
 
-        <div id="user-board">
-          <div class="hand-container">
-            <button id="split-btn" class="hidden" onClick="split()">
-              Split
+        <div class="hidden" id="game-board">
+          <div id="dealer-board">
+            <div class="hand-container">
+              <div class="hand" id="dealer-hand"></div>
+            </div>
+
+            <div class="score dealer-score">
+              <h4>DealerScore</h4>
+              <span id="dealer_score"></span>
+            </div>
+          </div>
+
+          <div class="in-hand-actions">
+            <button
+              class="btn-action"
+              id="hit-btn"
+              onClick="hitUser('userHandOne')"
+            >
+              <!--This looks wrong, hitUser should have ambiguous params -->
+              Hit
             </button>
-            <div class="hand" id="user-hand"></div>
+            <div id="wager">
+              <button class="visible" id="double-btn" onClick="double()">
+                Double Down
+              </button>
+              Wager: $<span id="wager_amount"></span>
+            </div>
+            <button
+              class="btn-action"
+              id="stay-btn"
+              onClick="stay('userHandOne')"
+            >
+              Stay
+            </button>
           </div>
-          <div class="score user-score">
-            <h4>UserScore</h4>
-            <span id="user_score"></span>
+
+          <div id="user-board">
+            <div class="hand-container">
+              <button id="split-btn" class="hidden" onClick="split()">
+                Split
+              </button>
+              <div class="hand" id="user-hand"></div>
+            </div>
+            <div class="score user-score">
+              <h4>UserScore</h4>
+              <span id="user_score"></span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <h3 class="bankroll">Bankroll: $<span id="bankroll_tab"></span></h3>
+        <h3 class="bankroll">Bankroll: $<span id="bankroll_tab"></span></h3>
 
-      <div class="visible split-hand" id="split-hand"></div>
-      <div>
-        <!-- <button onClick="toggleFocusHandToFrom(userHandTwo, userHandOne)">
+        <div class="visible split-hand" id="split-hand"></div>
+        <div>
+          <!-- <button onClick="toggleFocusHandToFrom(userHandTwo, userHandOne)">
           Toggle Focus hand
         </button>
         <button onClick="settleHand(userHandTwo)">Settle hand2</button> -->
+        </div>
       </div>
     </main>
 

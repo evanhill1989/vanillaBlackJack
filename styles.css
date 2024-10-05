@@ -1,32 +1,247 @@
-* {
-  margin: 0;
+/* ------------------- */
+/* Custom properties   */
+/* ------------------- */
+
+:root {
+  --clr-primary-dark: 143 73% 16%;
+  --clr-primary-light: 144 64% 22%;
+  --clr-white: 0 0% 100%;
+  --clr-black: 0 0% 0%;
+
+  /* font-sizes */
+  --fs-900: 9.375rem;
+  --fs-800: 6.25rem;
+  --fs-700: 3.5rem;
+  --fs-600: 2rem;
+  --fs-500: 1.75rem;
+  --fs-400: 1.125rem;
+  --fs-300: 1rem;
+  --fs-200: 0.875rem;
+
+  /* font-weights */
+  --fw-900: 900;
+  --fw-700: 700;
+  --fw-600: 600;
+  --fw-500: 500;
+  --fw-400: 400;
+
+  /* font-families */
+
+  --ff-sans-normal: "Inter", sans-serif;
+  --ff-sans-cond: "Inter Tight", sans-serif;
+}
+
+/* ------------------- */
+/* Reset               */
+/* ------------------- */
+
+/* https://piccalil.li/blog/a-modern-css-reset/ */
+
+/* Box sizing */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-body {
-  height: 100vh;
+/* Reset margins */
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+p,
+figure,
+picture {
+  margin: 0;
 }
 
-main {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  justify-content: center;
-  justify-items: center;
+/* set up the body */
+body {
+  line-height: 1.5;
+  min-height: 100vh;
+  font-family: var(--ff-sans-normal);
+  font-size: var(--fs-400);
+  color: var(--clr-white);
   background-image: url("table-bg.png");
   background-repeat: no-repeat;
   background-size: cover;
 }
 
+/* make images easier to work with */
+img,
+picutre {
+  max-width: 100%;
+  display: block;
+}
+
+/* make form elements easier to work with */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* remove animations for people who've turned them off */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ------------------- */
+/* Utility classes     */
+/* ------------------- */
+
+.flex {
+  display: flex;
+  gap: var(--gap, 1rem);
+}
+
+.grid {
+  display: grid;
+  gap: var(--gap, 1rem);
+}
+
 .container {
-  margin: auto;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: 2em;
+  width: 100%;
+}
+
+.center {
+  align-items: center;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap; /* added line */
+  border: 0;
+}
+
+/* colors */
+
+.bg-dark {
+  background-color: hsl(var(--clr-primary-dark));
+}
+.bg-light {
+  background-color: hsl(var(--clr-primary-light));
+}
+.text-white {
+  color: hsl(var(--clr-white));
+}
+.text-black {
+  color: hsl(var(--clr-black));
+}
+
+/* typography */
+
+.ff-sans-cond {
+  font-family: var(--ff-sans-cond);
+}
+.ff-sans-normal {
+  font-family: var(--ff-sans-normal);
+}
+
+.letter-spacing-1 {
+  letter-spacing: 4.75px;
+}
+.letter-spacing-2 {
+  letter-spacing: 2.7px;
+}
+.letter-spacing-3 {
+  letter-spacing: 2.35px;
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+.fs-900 {
+  font-size: var(--fs-900);
+}
+.fs-800 {
+  font-size: var(--fs-800);
+}
+.fs-700 {
+  font-size: var(--fs-700);
+}
+.fs-600 {
+  font-size: var(--fs-600);
+}
+.fs-500 {
+  font-size: var(--fs-500);
+}
+.fs-400 {
+  font-size: var(--fs-400);
+}
+.fs-300 {
+  font-size: var(--fs-300);
+}
+.fs-200 {
+  font-size: var(--fs-200);
+}
+
+.fw-900 {
+  font-weight: var(--fw-900);
+}
+.fw-700 {
+  font-weight: var(--fw-700);
+}
+.fw-600 {
+  font-weight: var(--fw-600);
+}
+.fw-500 {
+  font-weight: var(--fw-500);
+}
+.fw-400 {
+  font-weight: var(--fw-400);
+}
+
+.fs-900,
+.fs-800,
+.fs-700,
+.fs-600 {
+  line-height: 1.1;
+}
+
+main {
+  width: 100%;
+  height: 100vh;
+  display: grid;
+  justify-content: center;
+  justify-items: center;
 }
 
 #initial-wager {
-  justify-content: center;
-  justify-items: center;
   justify-self: center;
   align-self: center;
+}
+
+.wager-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1em;
+}
+
+.wager-label-input {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1em;
 }
 
 #game-board {
@@ -64,6 +279,16 @@ main {
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: 1fr;
   grid-template-areas: "hit-btn wager stay-btn";
+}
+
+.button-primary {
+  background: linear-gradient(
+    to bottom,
+    hsl(var(--clr-primary-dark)),
+    hsl(var(--clr-primary-light))
+  );
+  padding: 20px 20px;
+  color: hsl(var(--clr-white));
 }
 
 #hit-btn {

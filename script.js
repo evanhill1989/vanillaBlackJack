@@ -114,7 +114,8 @@ const hitBtnTwo = document.getElementById("hit-btn-handTwo");
 const stayBtnTwo = document.getElementById("stay-btn-handTwo");
 
 wagerInput.addEventListener("", (event) => {
-  wagerElement.innerHTML = wagerAmount;
+  wagerAmount = parseInt(event.target.value) || 100;
+  wagerElement.innerHTML = wagerAmount.toString();
 });
 
 bankrollElement.innerHTML = bankroll;
@@ -155,8 +156,14 @@ function dealNewHand(event) {
     event.preventDefault();
   }
 
-  wagerAmount = event.target[0].value || 100;
-  const numWagerAmount = parseInt(wagerAmount);
+  const form = event.target; // Get the form element
+  const wagerInputValue = form.querySelector("#wager-input").value; // Get the input value
+
+  wagerAmount = parseInt(wagerInputValue) || 100;
+
+  console.log("Wager Amount:", wagerAmount); // Output the value (or return it)
+
+  wagerElement.innerHTML = wagerAmount.toString();
 
   uiToggleDisplay(initialWager);
   uiToggleDisplay(gameBoard);
@@ -316,8 +323,8 @@ function checkIfCanDouble(handScore) {
 }
 
 function double(hand = userHandOne) {
-  wagerAmount = wagerAmount + wagerAmount;
-  wagerElement.innerHTML = wagerAmount;
+  wagerAmount = wagerAmount * 2;
+  wagerElement.innerHTML = wagerAmount.toString();
   dealCard(hand);
 
   uiToggleDisplay(splitBtn);
@@ -333,8 +340,6 @@ function split() {
   uiUpdateScore();
 
   uiToggleDisplay(splitBtn);
-  console.log(userHandOne.isFocus, "UH1 IS FOCUS");
-  console.log(userHandTwo.isFocus, "UH2 IS FOCUS");
 }
 
 function uiSplitCards(hand) {
@@ -377,15 +382,6 @@ function toggleFocusHandToFrom(toHand, fromHand) {
 
   const currentFocus = userHandOne.isFocus ? userHandOne : userHandTwo;
   const currentSplitPreview = userHandOne.isFocus ? userHandTwo : userHandOne;
-
-  console.log(
-    currentFocus.name,
-    "=== CURRENT FOCUS",
-    toHand,
-    "=== toHand",
-    fromHand,
-    "=== fromHand"
-  );
 
   switchFocusHandTo(toHand);
   switchSplitPreviewTo(fromHand);
@@ -518,13 +514,11 @@ async function stay() {
 
 async function splitStay() {
   if (userHandOne.isFocus) {
-    console.log("we should run this if first from splitStay");
     toggleFocusHandToFrom(userHandTwo, userHandOne);
   } else if (userHandTwo.isFocus && userHandOne.score > 21) {
     dealerAction();
     await settleHand(userHandTwo);
   } else if (userHandTwo.isFocus && !userHandOne.isSettled) {
-    console.log("we should end up in the last else if from splitStay");
     toggleFocusHandToFrom(userHandOne, userHandTwo);
     dealerAction();
     await settleHand(userHandOne);
@@ -596,7 +590,6 @@ async function settleHand(hand, blackjackMultiplier = 1) {
 
   bankrollUpdate(outcome, blackjackMultiplier);
   if (!wasSplit()) {
-    console.log("!split hands should run here");
     await uiOutcome(outcome);
 
     uiTransitionToWager("if !wasSplit top of settleHand");
@@ -642,25 +635,21 @@ async function settleHand(hand, blackjackMultiplier = 1) {
       // the first settleHand that started with hand === userHandOne tries to finish
       // but now the state has been changed and it's able to jump in here
 
-      console.log("Scenario 2 should produce this loge");
       await uiOutcome(outcome, hand);
       userHandTwo.isSettled = true;
       uiTransitionToWager("scenario2");
     } else if (userHandTwo.score > 21 && !userHandOne.isSettled) {
       // 3. UH1 stayed, UH2 busted is SETTLING, UH1 settleQueue'd
-      console.log("Scenario 3 should produce this loge");
       await uiOutcome(outcome);
       userHandTwo.isSettled = true;
       toggleFocusHandToFrom(userHandOne, userHandTwo);
       settleHand(userHandOne); // recursion that's not buggy
     } else if (userHandOne.isSettled) {
       // 6. UH1 busted settled, UH2 is SETTLING
-      console.log("Scenario 6 should produce this loge");
       await uiOutcome(outcome);
       userHandTwo.isSettled = true;
       uiTransitionToWager("scenario6");
     } else {
-      console.log("Probably an error ");
     }
   }
 }
@@ -695,18 +684,13 @@ function uiTransitionToWager(runningFrom) {
   // moving from wager view to deal view
   // the UI inside will contain the deal button which will call the dealNewHand function
 
-  console.log("uiTransitionToWager has started", runningFrom);
   uiToggleDisplay(gameBoard);
   uiToggleDisplay(initialWager);
   initialWager.classList.add("initial-wager");
   resetHand();
-  console.log("uiTransitionToWager has ended, runningFrom:", runningFrom);
-
-  // console.log("uiTransitionToWager has ended");
 }
 
 function resetHand(wagerAmount) {
-  console.log("resetHand has started");
   // This is gross and temporary
   // Really i need to dump const userHandOne
 
@@ -744,7 +728,6 @@ function resetHand(wagerAmount) {
 
   userHandMainElement.innerHTML = "";
   dealerHandElement.innerHTML = "";
-  console.log("resetHand has run");
 }
 
 // Utility functions
