@@ -1,3 +1,7 @@
+// import { deckStart } from "./data.js";
+
+// In the middle of trying to get dealCard to show the cards in the UI. The data is all correct
+
 const deckStart = [
   { rank: "2", value: 2, suitEmoji: "♡", suit: "hearts" },
   { rank: "3", value: 3, suitEmoji: "♡", suit: "hearts" },
@@ -56,6 +60,7 @@ const deckStart = [
   { rank: "A", value: 0, suitEmoji: "♤", suit: "spades" },
 ];
 
+const suits = ["♤", "♧", "♢", "♡"];
 //NEXT STEP -- Toggle focus hand is delayed by 1 step somehow. in middle of switching params.
 // Refactor to handle which userHand as prop for more generic functions...
 /* UI functions List:
@@ -113,16 +118,6 @@ const doubleBtn = document.getElementById("double-btn");
 const hitBtnTwo = document.getElementById("hit-btn-handTwo");
 const stayBtnTwo = document.getElementById("stay-btn-handTwo");
 
-wagerInput.addEventListener("", (event) => {
-  wagerAmount = parseInt(event.target.value) || 100;
-  wagerElement.innerHTML = wagerAmount.toString();
-});
-
-bankrollElement.innerHTML = bankroll;
-bankrollTab.innerHTML = bankroll;
-
-// Isolate play while "splitting" --
-
 const hands = {
   dealerHand: {
     cards: [],
@@ -150,7 +145,19 @@ const hands = {
 const userHandOne = hands.userHandOne;
 const userHandTwo = hands.userHandTwo; // Will only have a "userHandTwo" after split() -- function for splitting a pair
 const dealerHand = hands.dealerHand;
-const suits = ["♤", "♧", "♢", "♡"];
+
+// Weird AF , what's going on below and why?
+
+// wagerInput.addEventListener("", (event) => {
+//   wagerAmount = parseInt(event.target.value) || 100;
+//   wagerElement.innerHTML = wagerAmount.toString();
+// });
+
+// bankrollElement.innerHTML = `${bankroll}`;
+bankrollTab.innerHTML = `${bankroll}`;
+
+// Isolate play while "splitting" --
+
 function dealNewHand(event) {
   if (event) {
     event.preventDefault();
@@ -160,8 +167,7 @@ function dealNewHand(event) {
   const wagerInputValue = form.querySelector("#wager-input").value; // Get the input value
 
   wagerAmount = parseInt(wagerInputValue) || 100;
-
-  console.log("Wager Amount:", wagerAmount); // Output the value (or return it)
+  wagerAmount = 100;
 
   wagerElement.innerHTML = wagerAmount.toString();
 
@@ -173,34 +179,41 @@ function dealNewHand(event) {
     suitEmoji: "♤",
     suit: "spades",
   });
-  dealCard(userHandOne, {
-    rank: "5",
-    value: 5,
-    suitEmoji: "♢",
-    suit: "diamonds",
-  });
+  setTimeout(() => {
+    dealCard(userHandOne, {
+      rank: "5",
+      value: 5,
+      suitEmoji: "♢",
+      suit: "diamonds",
+    });
+  }, 1000);
 
-  dealCard(dealerHand, {
-    rank: "K",
-    value: 10,
-    suitEmoji: "♧",
-    suit: "clubs",
-  });
-  dealCard(dealerHand, {
-    rank: "4",
-    value: 4,
-    suitEmoji: "♧",
-    suit: "clubs",
-  });
+  setTimeout(() => {
+    dealCard(dealerHand, {
+      rank: "K",
+      value: 10,
+      suitEmoji: "♧",
+      suit: "clubs",
+    });
+  }, 2000);
 
-  // uiDealHands();
-  updateScore();
-  uiUpdateScore();
+  setTimeout(() => {
+    dealCard(dealerHand, {
+      rank: "4",
+      value: 4,
+      suitEmoji: "♧",
+      suit: "clubs",
+    });
 
-  checkForBlackjack();
-  checkIfCanSplit();
-  checkIfCanDouble(userHandOne.score);
-  // canInsure();
+    // uiDealHands();
+    updateScore();
+    uiUpdateScore();
+
+    checkForBlackjack();
+    checkIfCanSplit();
+    checkIfCanDouble(userHandOne.score);
+    // canInsure();
+  }, 3000);
 }
 
 function dealCard(hand, staticCardForTesting) {
@@ -246,6 +259,7 @@ function dealCard(hand, staticCardForTesting) {
 // }
 
 function uiCreateCard(hand, card, isHoleCard) {
+  console.log("uiCreateCard running", card);
   const cardElement = document.createElement("div");
   const suitElement = document.createElement("div");
   const rightRankElement = document.createElement("div");
