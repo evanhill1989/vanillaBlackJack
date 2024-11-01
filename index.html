@@ -18,31 +18,32 @@
       <span id="outcome-message"><h2>outcome</h2></span>
     </div>
     <main class="center">
-      <div class="container grid">
-        <div class="visible" id="initial-wager">
-          <form class="wager-form" onsubmit="dealNewHand(event)">
-            <div class="wager-label-input">
-              <label for="wager-input">Wager:</label>
-              <input type="number" id="wager-input" name="wager-input" />
-            </div>
+      <div id="initial-wager" class="wrapper visible">
+        <form class="wager-form" onsubmit="dealNewHand(event)">
+          <div class="wager-label-input">
+            <label for="wager-input">Wager:</label>
+            <input type="number" id="wager-input" name="wager-input" />
+          </div>
 
-            <button
-              class="button-primary fs-600 fw-700 uppercase"
-              type="submit"
-            >
+          <div class="wager-btn">
+            <button class="btn fs-600 fw-700 uppercase" type="submit">
               Deal
             </button>
-          </form>
+          </div>
+        </form>
+        <div class="bank">
+          <h3>Bankroll: $<span id="bankroll"></span></h3>
         </div>
-
-        <div class="hidden" id="game-board">
-          <div id="dealer-board">
+      </div>
+      <div class="hidden game-board" id="game-board">
+        <div class="game-board__wrapper">
+          <div class="player-board" id="dealer-board">
             <div class="hand-container">
               <div class="hand" id="dealer-hand"></div>
             </div>
 
             <div class="score dealer-score">
-              <h4>DealerScore</h4>
+              <h4>Score</h4>
               <span id="dealer_score"></span>
             </div>
           </div>
@@ -62,16 +63,12 @@
               </button>
               Wager: $<span id="wager_amount"></span>
             </div>
-            <button
-              class="btn-action"
-              id="stay-btn"
-              onClick="stay('userHandOne')"
-            >
+            <button class="btn" id="stay-btn" onClick="stay('userHandOne')">
               Stay
             </button>
           </div>
 
-          <div id="user-board">
+          <div class="player-board" id="user-board">
             <div class="hand-container">
               <button id="split-btn" class="hidden" onClick="split()">
                 Split
@@ -79,20 +76,13 @@
               <div class="hand" id="user-hand"></div>
             </div>
             <div class="score user-score">
-              <h4>UserScore</h4>
+              <h4>Score</h4>
               <span id="user_score"></span>
             </div>
           </div>
-        </div>
+          <h3 class="bankroll">Bankroll: $<span id="bankroll_tab"></span></h3>
 
-        <h3 class="bankroll">Bankroll: $<span id="bankroll_tab"></span></h3>
-
-        <div class="visible split-hand" id="split-hand"></div>
-        <div>
-          <!-- <button onClick="toggleFocusHandToFrom(userHandTwo, userHandOne)">
-          Toggle Focus hand
-        </button>
-        <button onClick="settleHand(userHandTwo)">Settle hand2</button> -->
+          <div class="visible split-hand" id="split-hand"></div>
         </div>
       </div>
     </main>

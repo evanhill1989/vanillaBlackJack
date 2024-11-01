@@ -153,7 +153,7 @@ const dealerHand = hands.dealerHand;
 //   wagerElement.innerHTML = wagerAmount.toString();
 // });
 
-// bankrollElement.innerHTML = `${bankroll}`;
+bankrollElement.innerText = `${bankroll}`;
 bankrollTab.innerHTML = `${bankroll}`;
 
 // Isolate play while "splitting" --
@@ -201,6 +201,30 @@ function dealNewHand(event) {
     dealCard(dealerHand, {
       rank: "4",
       value: 4,
+      suitEmoji: "♧",
+      suit: "clubs",
+    });
+    dealCard(dealerHand, {
+      rank: "5",
+      value: 5,
+      suitEmoji: "♧",
+      suit: "clubs",
+    });
+    dealCard(dealerHand, {
+      rank: "6",
+      value: 6,
+      suitEmoji: "♧",
+      suit: "clubs",
+    });
+    dealCard(dealerHand, {
+      rank: "7",
+      value: 7,
+      suitEmoji: "♧",
+      suit: "clubs",
+    });
+    dealCard(dealerHand, {
+      rank: "8",
+      value: 8,
       suitEmoji: "♧",
       suit: "clubs",
     });
@@ -259,7 +283,6 @@ function dealCard(hand, staticCardForTesting) {
 // }
 
 function uiCreateCard(hand, card, isHoleCard) {
-  console.log("uiCreateCard running", card);
   const cardElement = document.createElement("div");
   const suitElement = document.createElement("div");
   const rightRankElement = document.createElement("div");
@@ -746,6 +769,7 @@ function resetHand(wagerAmount) {
 
 // Utility functions
 function uiToggleDisplay(element) {
+  console.log(element.classList, "element = ", element);
   if (element.classList.contains("hidden")) {
     element.classList.replace("hidden", "visible");
   } else {
