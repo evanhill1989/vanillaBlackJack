@@ -204,30 +204,30 @@ function dealNewHand(event) {
       suitEmoji: "♧",
       suit: "clubs",
     });
-    dealCard(dealerHand, {
-      rank: "5",
-      value: 5,
-      suitEmoji: "♧",
-      suit: "clubs",
-    });
-    dealCard(dealerHand, {
-      rank: "6",
-      value: 6,
-      suitEmoji: "♧",
-      suit: "clubs",
-    });
-    dealCard(dealerHand, {
-      rank: "7",
-      value: 7,
-      suitEmoji: "♧",
-      suit: "clubs",
-    });
-    dealCard(dealerHand, {
-      rank: "8",
-      value: 8,
-      suitEmoji: "♧",
-      suit: "clubs",
-    });
+    // dealCard(dealerHand, {
+    //   rank: "5",
+    //   value: 5,
+    //   suitEmoji: "♧",
+    //   suit: "clubs",
+    // });
+    // dealCard(dealerHand, {
+    //   rank: "6",
+    //   value: 6,
+    //   suitEmoji: "♧",
+    //   suit: "clubs",
+    // });
+    // dealCard(dealerHand, {
+    //   rank: "7",
+    //   value: 7,
+    //   suitEmoji: "♧",
+    //   suit: "clubs",
+    // });
+    // dealCard(dealerHand, {
+    //   rank: "8",
+    //   value: 8,
+    //   suitEmoji: "♧",
+    //   suit: "clubs",
+    // });
 
     // uiDealHands();
     updateScore();
@@ -253,11 +253,20 @@ function dealCard(hand, staticCardForTesting) {
     userHandTwo.cards.push(staticCardForTesting || randomCard);
   } else {
     dealerHand.cards.push(staticCardForTesting || randomCard);
-    const newCard = uiCreateCard(
-      "dealerHand",
-      staticCardForTesting || randomCard
-    );
-    dealerHandElement.appendChild(newCard);
+    if (dealerHand.cards.length === 1) {
+      const newCard = uiCreateCard(
+        "dealerHand",
+        staticCardForTesting || randomCard,
+        true
+      );
+      dealerHandElement.appendChild(newCard);
+    } else {
+      const newCard = uiCreateCard(
+        "dealerHand",
+        staticCardForTesting || randomCard
+      );
+      dealerHandElement.appendChild(newCard);
+    }
   }
   updateRemainingDeck(staticCardForTesting || randomCard);
 
@@ -284,28 +293,29 @@ function dealCard(hand, staticCardForTesting) {
 
 function uiCreateCard(hand, card, isHoleCard) {
   const cardElement = document.createElement("div");
-  const suitElement = document.createElement("div");
-  const rightRankElement = document.createElement("div");
-  const leftRankElement = document.createElement("div");
-
-  rightRankElement.textContent = card.rank;
-  rightRankElement.classList.add("rank", "rankRightSide");
-  leftRankElement.textContent = card.rank;
-  leftRankElement.classList.add("rank", "rankLeftSide");
-  suitElement.textContent = card.suitEmoji;
-  suitElement.classList.add("suit");
-  cardElement.classList.add("card");
-
-  // dealerHand.length is never 0 at this point because dealCard() is called before this function. It's called before this function so this function knows which cards it's creating. Maybe dealerHand.length isnt a great way to see if card === hole card ( 1st card ) anyway.
 
   if (isHoleCard) {
+    console.log("hole card", isHoleCard);
     cardElement.classList.add("card-back");
     return cardElement;
   } else {
+    const suitElement = document.createElement("div");
+    const rightRankElement = document.createElement("div");
+    const leftRankElement = document.createElement("div");
+
+    rightRankElement.textContent = card.rank;
+    rightRankElement.classList.add("rank", "rankRightSide");
+    leftRankElement.textContent = card.rank;
+    leftRankElement.classList.add("rank", "rankLeftSide");
+    suitElement.textContent = card.suitEmoji;
+    suitElement.classList.add("suit");
+    cardElement.classList.add("card");
+
     cardElement.classList.add("card-face");
     cardElement.appendChild(leftRankElement);
     cardElement.appendChild(suitElement);
     cardElement.appendChild(rightRankElement);
+    console.log("final cardElement: ", cardElement);
     return cardElement;
   }
 }

@@ -222,12 +222,35 @@ select {
   line-height: 1.1;
 }
 
+/* Components */
+
+.btn {
+  display: inline-block;
+  outline: 3px solid orange;
+
+  padding: 0.5em 1.5em;
+  background: linear-gradient(
+    to bottom,
+    hsl(var(--clr-green-light)) 0%,
+    hsl(var(--clr-green-dark)) 100%
+  );
+  color: hsl(var(--clr-white));
+  text-decoration: none;
+  cursor: pointer;
+  font-size: var(--fs-200);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+  transition: transform 200ms ease-in-out;
+}
+
 main {
   width: 100%;
   height: 100vh;
   display: grid;
   justify-content: center;
   justify-items: center;
+  padding: 2em 1em;
 }
 
 #initial-wager {
@@ -292,12 +315,12 @@ main {
   justify-items: space-between;
   max-width: 1200px;
   display: grid;
-  grid-template-rows: repeat(3, 1fr);
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 1fr, max-content, 1fr;
+  grid-template-columns: 1fr;
   grid-template-areas:
-    "dealer-board dealer-board dealer-board"
-    "actions actions actions"
-    "user-board user-board user-board";
+    "dealer-board"
+    "actions"
+    "user-board";
   gap: 5em;
 }
 
@@ -307,6 +330,25 @@ main {
 .player-board {
   max-width: 100%;
   display: grid;
+  grid-template-rows: repeat(2, 1fr);
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.dealer-board {
+  grid-template-areas:
+    "hand hand"
+    ". score";
+}
+
+.user-board {
+  grid-template-areas:
+    ". score"
+    "hand hand";
+}
+
+.hand-container {
+  grid-area: hand;
+  display: flex;
 }
 
 .hand {
@@ -314,18 +356,24 @@ main {
   display: grid;
   grid-auto-flow: column;
   grid-template-columns: repeat(auto-fill, minmax(0, 1fr));
-  gap: 0px; /* Adjust the gap between the cards as needed */
+  gap: 1em; /* Adjust the gap between the cards as needed */
+  overflow: hidden;
+  color: blue;
+  text-shadow: #30c416 4px 0 1px, red -4px 0 1px;
 }
 
-.hand-container {
+.score {
+  grid-area: score;
+}
+
+/* .dealer-score {
+  grid-area: dealer-score;
+} */
+
+.user-score {
 }
 
 #user-board {
-  grid-area: user-board;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: 1fr;
-  grid-template-areas: ". hand-container user-score";
 }
 
 #dealer-board {
@@ -341,16 +389,6 @@ main {
   grid-template-areas: "hit-btn wager stay-btn";
 }
 
-.btn {
-  background: linear-gradient(
-    to bottom,
-    hsl(var(--clr-primary-dark)),
-    hsl(var(--clr-primary-light))
-  );
-  padding: 20px 20px;
-  color: hsl(var(--clr-white));
-}
-
 #hit-btn {
   grid-area: hit-btn;
 }
@@ -361,19 +399,6 @@ main {
 
 #stay-btn {
   grid-area: stay-btn;
-}
-
-.btn-action {
-  width: 6em;
-  height: 4em;
-}
-
-.dealer-score {
-  grid-area: dealer-score;
-}
-
-.user-score {
-  grid-area: user-score;
 }
 
 #split-hand {

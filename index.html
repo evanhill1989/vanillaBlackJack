@@ -37,7 +37,7 @@
       </div>
       <div class="hidden game-board" id="game-board">
         <div class="game-board__wrapper">
-          <div class="player-board" id="dealer-board">
+          <div class="player-board dealer-board" id="dealer-board">
             <div class="hand-container">
               <div class="hand" id="dealer-hand"></div>
             </div>
@@ -49,40 +49,44 @@
           </div>
 
           <div class="in-hand-actions">
-            <button
-              class="btn-action"
-              id="hit-btn"
-              onClick="hitUser('userHandOne')"
-            >
-              <!--This looks wrong, hitUser should have ambiguous params -->
-              Hit
-            </button>
+            <div>
+              <button class="btn" id="hit-btn" onClick="hitUser('userHandOne')">
+                <!--This looks wrong, hitUser should have ambiguous params -->
+                Hit
+              </button>
+            </div>
+
             <div id="wager">
-              <button class="visible" id="double-btn" onClick="double()">
+              <button class="visible btn" id="double-btn" onClick="double()">
                 Double Down
               </button>
               Wager: $<span id="wager_amount"></span>
             </div>
-            <button class="btn" id="stay-btn" onClick="stay('userHandOne')">
-              Stay
-            </button>
+            <div>
+              <button class="btn" id="stay-btn" onClick="stay('userHandOne')">
+                Stay
+              </button>
+            </div>
           </div>
 
-          <div class="player-board" id="user-board">
-            <div class="hand-container">
-              <button id="split-btn" class="hidden" onClick="split()">
-                Split
-              </button>
-              <div class="hand" id="user-hand"></div>
-            </div>
+          <div class="player-board user-board" id="user-board">
             <div class="score user-score">
               <h4>Score</h4>
               <span id="user_score"></span>
             </div>
+            <div class="hand-container">
+              <!-- <div>
+                <button id="split-btn" class="btn hidden" onClick="split()">
+                  Split
+                </button>
+              </div> -->
+
+              <div class="hand" id="user-hand"></div>
+            </div>
           </div>
           <h3 class="bankroll">Bankroll: $<span id="bankroll_tab"></span></h3>
 
-          <div class="visible split-hand" id="split-hand"></div>
+          <div class="hidden split-hand" id="split-hand"></div>
         </div>
       </div>
     </main>
