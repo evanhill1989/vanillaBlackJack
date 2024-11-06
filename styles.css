@@ -250,7 +250,6 @@ main {
   display: grid;
   justify-content: center;
   justify-items: center;
-  padding: 2em 1em;
 }
 
 #initial-wager {
@@ -307,21 +306,18 @@ main {
 
 /* Game Board Layout */
 
-.game-board {
-}
-
 .game-board__wrapper {
   padding-inline: 2em;
-  justify-items: space-between;
+  justify-items: center;
   max-width: 1200px;
   display: grid;
-  grid-template-rows: 1fr, max-content, 1fr;
+  grid-template-rows: 1fr, 1fr, 1fr;
   grid-template-columns: 1fr;
   grid-template-areas:
     "dealer-board"
     "actions"
     "user-board";
-  gap: 5em;
+  gap: 1em;
 }
 
 #game-board {
@@ -330,20 +326,10 @@ main {
 .player-board {
   max-width: 100%;
   display: grid;
-  grid-template-rows: repeat(2, 1fr);
-  grid-template-columns: repeat(2, 1fr);
-}
-
-.dealer-board {
-  grid-template-areas:
-    "hand hand"
-    ". score";
-}
-
-.user-board {
-  grid-template-areas:
-    ". score"
-    "hand hand";
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas: "hand score";
+  min-height: 150px;
+  outline: 3px solid lime;
 }
 
 .hand-container {
@@ -353,17 +339,31 @@ main {
 
 .hand {
   position: relative;
-  display: grid;
-  grid-auto-flow: column;
-  grid-template-columns: repeat(auto-fill, minmax(0, 1fr));
-  gap: 1em; /* Adjust the gap between the cards as needed */
-  overflow: hidden;
+
   color: blue;
   text-shadow: #30c416 4px 0 1px, red -4px 0 1px;
+  outline: 1px solid white;
+}
+
+.card-container {
+  display: grid;
+}
+
+.card {
+  position: absolute;
+  top: 0;
+  display: grid;
+  grid-template-rows: 20px 1fr 20px;
+  width: 100px;
+  height: 150px;
+  padding: 5px;
+  border: 1px solid #000;
+  border-radius: 10px;
 }
 
 .score {
   grid-area: score;
+  align-self: center;
 }
 
 /* .dealer-score {
@@ -383,7 +383,7 @@ main {
   grid-area: actions;
   width: 100%;
   display: grid;
-
+  outline: 3px solid lime;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: 1fr;
   grid-template-areas: "hit-btn wager stay-btn";
@@ -428,22 +428,8 @@ main {
   position: absolute;
 }
 
-.card-container {
-  display: grid;
-}
-
 .button-container {
   display: flex;
-}
-
-.card {
-  display: grid;
-  grid-template-rows: 20px 1fr 20px;
-  width: 100px;
-  height: 150px;
-  padding: 5px;
-  border: 1px solid #000;
-  border-radius: 10px;
 }
 
 .card-face {

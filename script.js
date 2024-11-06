@@ -146,17 +146,8 @@ const userHandOne = hands.userHandOne;
 const userHandTwo = hands.userHandTwo; // Will only have a "userHandTwo" after split() -- function for splitting a pair
 const dealerHand = hands.dealerHand;
 
-// Weird AF , what's going on below and why?
-
-// wagerInput.addEventListener("", (event) => {
-//   wagerAmount = parseInt(event.target.value) || 100;
-//   wagerElement.innerHTML = wagerAmount.toString();
-// });
-
 bankrollElement.innerText = `${bankroll}`;
 bankrollTab.innerHTML = `${bankroll}`;
-
-// Isolate play while "splitting" --
 
 function dealNewHand(event) {
   if (event) {
@@ -245,24 +236,24 @@ function dealCard(hand, staticCardForTesting) {
   if (hand === userHandOne) {
     userHandOne.cards.push(staticCardForTesting || randomCard);
     const newCard = uiCreateCard(
-      "userHandOne",
+      userHandOne,
       staticCardForTesting || randomCard
     );
     userHandMainElement.appendChild(newCard);
   } else if (hand === userHandTwo) {
-    userHandTwo.cards.push(staticCardForTesting || randomCard);
+    userHandTwo.cards.push(userHandTwo, staticCardForTesting || randomCard);
   } else {
     dealerHand.cards.push(staticCardForTesting || randomCard);
     if (dealerHand.cards.length === 1) {
       const newCard = uiCreateCard(
-        "dealerHand",
+        dealerHand,
         staticCardForTesting || randomCard,
         true
       );
       dealerHandElement.appendChild(newCard);
     } else {
       const newCard = uiCreateCard(
-        "dealerHand",
+        dealerHand,
         staticCardForTesting || randomCard
       );
       dealerHandElement.appendChild(newCard);
@@ -293,6 +284,8 @@ function dealCard(hand, staticCardForTesting) {
 
 function uiCreateCard(hand, card, isHoleCard) {
   const cardElement = document.createElement("div");
+  console.log(hand.cards.length, "<---hand length");
+  const cardIndex = hand.cards.length - 1;
 
   if (isHoleCard) {
     console.log("hole card", isHoleCard);
@@ -309,9 +302,11 @@ function uiCreateCard(hand, card, isHoleCard) {
     leftRankElement.classList.add("rank", "rankLeftSide");
     suitElement.textContent = card.suitEmoji;
     suitElement.classList.add("suit");
-    cardElement.classList.add("card");
 
+    cardElement.classList.add("card");
     cardElement.classList.add("card-face");
+    cardElement.style.left = `${cardIndex * 1}em`;
+
     cardElement.appendChild(leftRankElement);
     cardElement.appendChild(suitElement);
     cardElement.appendChild(rightRankElement);
