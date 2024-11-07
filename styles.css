@@ -1,13 +1,21 @@
 /* ------------------- */
 /* Custom properties   */
 /* ------------------- */
-
+.test {
+  color: hsl(120, 74%, 52%);
+  color: hsl(0, 100%, 55%);
+  color: hsl(230, 100%, 59%);
+}
 :root {
   --clr-green-dark: 143 73% 16%;
   --clr-green-darkest: 143 73% 10%;
   --clr-green-light: 144 64% 22%;
   --clr-white: 0 0% 100%;
   --clr-black: 0 0% 0%;
+
+  --clr-green-bright: 120 74% 52%;
+  --clr-red: 0 100 55%;
+  --clr-blue: 230 100% 59%;
 
   /* font-sizes */
   --fs-900: 9.375rem;
@@ -140,11 +148,22 @@ select {
 /* colors */
 
 .bg-dark {
-  background-color: hsl(var(--clr-primary-dark));
+  background-color: hsl(var(--clr-green-dark));
 }
 .bg-light {
-  background-color: hsl(var(--clr-primary-light));
+  background-color: hsl(var(--clr-green-light));
 }
+
+.bg-rainbow:hover {
+  background: red;
+  /* background: conic-gradient(
+    hsl(var(--clr-green-bright)),
+    hsl(var(--clr-red)),
+    hsl(var(--clr-blue)),
+    hsl(var(--clr-green-bright))
+  ); */
+}
+
 .text-white {
   color: hsl(var(--clr-white));
 }
@@ -229,8 +248,8 @@ select {
   position: relative;
   background: linear-gradient(
     to bottom,
-    hsl(var(--clr-primary-light)),
-    hsl(var(--clr-primary-dark))
+    hsl(var(--clr-green-light)),
+    hsl(var(--clr-green-dark))
   );
   display: inline-block;
   width: 100%;
@@ -243,12 +262,21 @@ select {
   letter-spacing: 2px;
   font-weight: 600;
   overflow: hidden; /* To hide the rotated background overflow */
-  box-shadow: hsl(var(--clr-green-darkest)) 2px 5px 10px 2px,
-    hsl(var(--clr-green-dark)) -2px 12px 8px 1px;
+  box-shadow: hsl(var(--clr-green-darkest) / 0.4) 2px 5px 10px 2px,
+    hsl(var(--clr-green-dark) / 0.1) -2px 12px 8px 1px;
+}
+
+.btn:focus {
+  background: conic-gradient(
+    hsl(var(--clr-green-bright)),
+    hsl(var(--clr-red)),
+    hsl(var(--clr-blue)),
+    hsl(var(--clr-green-bright))
+  );
 }
 
 /* Add the background gradient as a pseudo-element */
-.btn::before {
+/* .btn::before {
   content: "";
   position: absolute;
   top: -40%;
@@ -265,8 +293,8 @@ select {
     linear-gradient(127deg, rgba(0, 255, 0, 0.8), rgba(0, 255, 0, 0) 70.71%),
     linear-gradient(336deg, rgba(0, 0, 255, 0.8), rgba(0, 0, 255, 0) 70.71%);
   transition: transform 0.5s ease-in-out;
-  transform-origin: center; /* Ensures rotation from the center */
-  z-index: -1; /* Place the background behind the button text */
+  transform-origin: center;
+  z-index: -1; 
 }
 
 /* Rotate only the background gradient on hover */
@@ -280,6 +308,10 @@ main {
   display: grid;
   justify-content: center;
   justify-items: center;
+}
+
+button:hover {
+  outline: 3px solid green;
 }
 
 #initial-wager {
@@ -323,6 +355,14 @@ main {
 .wager-btn {
   justify-self: center;
   align-self: self-start;
+}
+
+.wager-btn > .btn {
+  background: red;
+}
+
+.wager-btn > .btn:hover {
+  background: green;
 }
 
 @media (max-width: 600px) {

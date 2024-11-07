@@ -154,12 +154,12 @@ function dealNewHand(event) {
     event.preventDefault();
   }
 
+  uiUpdateScore();
   const form = event.target; // Get the form element
   const wagerInputValue = form.querySelector("#wager-input").value; // Get the input value
 
   wagerAmount = parseInt(wagerInputValue) || 100;
-  wagerAmount = 100;
-
+  bankrollTab.innerHTML = `${bankroll - wagerAmount}`;
   wagerElement.innerHTML = wagerAmount.toString();
 
   uiToggleDisplay(initialWager);
@@ -233,6 +233,7 @@ function dealNewHand(event) {
 
 function dealCard(hand, staticCardForTesting) {
   const randomCard = deck[Math.ceil(Math.random() * deck.length) - 1];
+
   if (hand === userHandOne) {
     userHandOne.cards.push(staticCardForTesting || randomCard);
 
@@ -243,8 +244,9 @@ function dealCard(hand, staticCardForTesting) {
     userHandMainElement.appendChild(newCard);
   } else if (hand === userHandTwo) {
     userHandTwo.cards.push(userHandTwo, staticCardForTesting || randomCard);
-  } else {
+  } else if (hand === dealerHand) {
     dealerHand.cards.push(staticCardForTesting || randomCard);
+
     if (dealerHand.cards.length === 1) {
       const newCard = uiCreateCard(
         dealerHand,
@@ -259,37 +261,20 @@ function dealCard(hand, staticCardForTesting) {
       );
       dealerHandElement.appendChild(newCard);
     }
+  } else {
+    console.error("error in dealCard, hand is undefined");
   }
   updateRemainingDeck(staticCardForTesting || randomCard);
 
   return randomCard;
 }
 
-// function uiDealHands() {
-//   // will work on realistic deal timing later
-//   userHandOne.cards.forEach((card) => {
-//     const newCard = uiCreateCard("userHandOne", card);
-//     userHandMainElement.appendChild(newCard);
-//   });
-
-//   for (let i = 0; i < dealerHand.cards.length; i++) {
-//     if (i === 0) {
-//       const newCard = uiCreateCard("dealerHand", dealerHand.cards[i], true);
-//       dealerHandElement.appendChild(newCard);
-//     } else {
-//       const newCard = uiCreateCard("dealerHand", dealerHand.cards[i], false);
-//       dealerHandElement.appendChild(newCard);
-//     }
-//   }
-// }
-
 function uiCreateCard(hand, card, isHoleCard) {
   const cardElement = document.createElement("div");
-  console.log(hand.cards.length, "<---hand length");
+
   const cardIndex = hand.cards.length - 1;
 
   if (isHoleCard) {
-    console.log("hole card", isHoleCard);
     cardElement.classList.add("card-back");
     return cardElement;
   } else {
@@ -311,7 +296,7 @@ function uiCreateCard(hand, card, isHoleCard) {
     cardElement.appendChild(leftRankElement);
     cardElement.appendChild(suitElement);
     cardElement.appendChild(rightRankElement);
-    console.log("final cardElement: ", cardElement);
+
     return cardElement;
   }
 }
@@ -576,17 +561,20 @@ function flipDealerCardUp() {
   // feels a little klunky. Should probably just be handled by flipping a state or CSS class
   const newElementsArray = [];
   dealerHand.cards.forEach((card) => {
-    newElementsArray.push(uiCreateCard("dealerHand", card, false)); // uiCreateCard
+    newElementsArray.push(uiCreateCard(dealerHand, card, false)); // uiCreateCard
   });
   dealerHandElement.replaceChildren(...newElementsArray);
 }
 
 function dealerAction() {
   updateScore();
+
   uiUpdateScore();
+
   flipDealerCardUp();
+
   while (dealerHand.score < 17) {
-    let newCard = dealCard(dealerHand);
+    dealCard(dealerHand);
 
     updateScore();
     uiUpdateScore();
@@ -775,7 +763,6 @@ function resetHand(wagerAmount) {
 
 // Utility functions
 function uiToggleDisplay(element) {
-  console.log(element.classList, "element = ", element);
   if (element.classList.contains("hidden")) {
     element.classList.replace("hidden", "visible");
   } else {
@@ -787,3 +774,21 @@ function uiToggleDisplay(element) {
 
 // it would almost be nice just to have methods directly attached to my hands objects... but i don't know exactly how to do that
 // This is why React -- if changing hands state, just directly changed UI this would all be so much easier
+
+// function uiDealHands() {
+//   // will work on realistic deal timing later
+//   userHandOne.cards.forEach((card) => {
+//     const newCard = uiCreateCard("userHandOne", card);
+//     userHandMainElement.appendChild(newCard);
+//   });
+
+//   for (let i = 0; i < dealerHand.cards.length; i++) {
+//     if (i === 0) {
+//       const newCard = uiCreateCard("dealerHand", dealerHand.cards[i], true);
+//       dealerHandElement.appendChild(newCard);
+//     } else {
+//       const newCard = uiCreateCard("dealerHand", dealerHand.cards[i], false);
+//       dealerHandElement.appendChild(newCard);
+//     }
+//   }
+// }
