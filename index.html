@@ -48,27 +48,33 @@
         </div>
 
         <div class="in-hand-actions">
-          <div>
-            <button class="btn" id="hit-btn" onClick="hitUser('userHandOne')">
-              <!--This looks wrong, hitUser should have ambiguous params -->
-              Hit
-            </button>
-          </div>
+          <button class="btn" id="hit-btn" onClick="hitUser('userHandOne')">
+            <!--This looks wrong, hitUser should have ambiguous params -->
+            Hit
+          </button>
 
           <div id="wager">
             <button class="visible btn" id="double-btn" onClick="double()">
-              Double Down
+              Double
             </button>
             Wager: $<span id="wager_amount"></span>
           </div>
-          <div>
-            <button class="btn" id="stay-btn" onClick="stay('userHandOne')">
-              Stay
-            </button>
+
+          <button class="btn" id="stay-btn" onClick="stay('userHandOne')">
+            Stay
+          </button>
+        </div>
+        <div class="player-board dealer-board" id="user-board">
+          <div class="hand-container">
+            <div class="hand" id="user-hand"></div>
+          </div>
+
+          <div class="score dealer-score">
+            <h4>Score</h4>
+            <span id="user_score"></span>
           </div>
         </div>
-
-        <div class="player-board user-board" id="user-board">
+        <!-- <div class="player-board user-board" id="user-board">
           <div class="hand-container">
             <div class="hand" id="user-hand"></div>
           </div>
@@ -76,7 +82,7 @@
             <h4>Score</h4>
             <span id="user_score"></span>
           </div>
-        </div>
+        </div> -->
 
         <h3 class="bankroll">Bankroll: $<span id="bankroll_tab"></span></h3>
 

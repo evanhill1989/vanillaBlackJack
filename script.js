@@ -235,6 +235,7 @@ function dealCard(hand, staticCardForTesting) {
   const randomCard = deck[Math.ceil(Math.random() * deck.length) - 1];
   if (hand === userHandOne) {
     userHandOne.cards.push(staticCardForTesting || randomCard);
+
     const newCard = uiCreateCard(
       userHandOne,
       staticCardForTesting || randomCard

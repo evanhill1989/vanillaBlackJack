@@ -4,6 +4,7 @@
 
 :root {
   --clr-green-dark: 143 73% 16%;
+  --clr-green-darkest: 143 73% 10%;
   --clr-green-light: 144 64% 22%;
   --clr-white: 0 0% 100%;
   --clr-black: 0 0% 0%;
@@ -225,15 +226,15 @@ select {
 /* Components */
 
 .btn {
-  display: inline-block;
-  outline: 3px solid orange;
-
-  padding: 0.5em 1.5em;
+  position: relative;
   background: linear-gradient(
     to bottom,
-    hsl(var(--clr-green-light)) 0%,
-    hsl(var(--clr-green-dark)) 100%
+    hsl(var(--clr-primary-light)),
+    hsl(var(--clr-primary-dark))
   );
+  display: inline-block;
+  width: 100%;
+  padding: 0.5em 1.5em;
   color: hsl(var(--clr-white));
   text-decoration: none;
   cursor: pointer;
@@ -241,7 +242,36 @@ select {
   text-transform: uppercase;
   letter-spacing: 2px;
   font-weight: 600;
-  transition: transform 200ms ease-in-out;
+  overflow: hidden; /* To hide the rotated background overflow */
+  box-shadow: hsl(var(--clr-green-darkest)) 2px 5px 10px 2px,
+    hsl(var(--clr-green-dark)) -2px 12px 8px 1px;
+}
+
+/* Add the background gradient as a pseudo-element */
+.btn::before {
+  content: "";
+  position: absolute;
+  top: -40%;
+  left: -35%;
+  right: 0;
+  bottom: 0;
+  width: 150%;
+  height: 150%;
+  background: linear-gradient(
+      217deg,
+      rgba(255, 0, 0, 0.8),
+      rgba(255, 0, 0, 0) 70.71%
+    ),
+    linear-gradient(127deg, rgba(0, 255, 0, 0.8), rgba(0, 255, 0, 0) 70.71%),
+    linear-gradient(336deg, rgba(0, 0, 255, 0.8), rgba(0, 0, 255, 0) 70.71%);
+  transition: transform 0.5s ease-in-out;
+  transform-origin: center; /* Ensures rotation from the center */
+  z-index: -1; /* Place the background behind the button text */
+}
+
+/* Rotate only the background gradient on hover */
+.btn:hover::before {
+  transform: rotate(15deg);
 }
 
 main {
@@ -262,7 +292,6 @@ main {
 #initial-wager > .bank {
   text-align: center;
   background-color: #000;
-  outline: 3px solid rgb(205, 50, 179);
 }
 
 .bank {
@@ -324,24 +353,26 @@ main {
 }
 
 .player-board {
-  max-width: 100%;
+  width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-areas: "hand score";
   min-height: 150px;
-  outline: 3px solid lime;
 }
 
 .hand-container {
   grid-area: hand;
   display: flex;
+  justify-content: center;
+  /* justify-content: center just a hack for now. won't work with many cards. This is being
+  used with "justify-self: end" in .hand to find the end/center */
 }
 
 .hand {
   position: relative;
-
+  justify-self: end;
   color: blue;
-  text-shadow: #30c416 4px 0 1px, red -4px 0 1px;
+
   outline: 1px solid white;
 }
 
@@ -361,9 +392,26 @@ main {
   border-radius: 10px;
 }
 
+.card-face {
+  background-color: white;
+}
+
+.card-back {
+  position: absolute;
+  top: 0;
+  width: 100px;
+  height: 150px;
+  background-image: url("card-back-no-border.svg");
+
+  background-color: blue;
+  border: solid rgba(0, 0, 0, 0.63) 1px;
+  border-radius: 10px;
+}
+
 .score {
   grid-area: score;
   align-self: center;
+  justify-self: end;
 }
 
 /* .dealer-score {
@@ -383,10 +431,11 @@ main {
   grid-area: actions;
   width: 100%;
   display: grid;
-  outline: 3px solid lime;
+
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: 1fr;
   grid-template-areas: "hit-btn wager stay-btn";
+  gap: 2em;
 }
 
 #hit-btn {
@@ -430,20 +479,6 @@ main {
 
 .button-container {
   display: flex;
-}
-
-.card-face {
-  background-color: white;
-}
-
-.card-back {
-  width: 100px;
-  height: 150px;
-  background-image: url("card-back-no-border.svg");
-
-  background-color: blue;
-  border: solid rgba(0, 0, 0, 0.63) 1px;
-  border-radius: 10px;
 }
 
 .spades {
