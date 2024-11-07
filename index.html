@@ -54,9 +54,15 @@
           </button>
 
           <div id="wager">
-            <button class="visible btn" id="double-btn" onClick="double()">
-              Double
-            </button>
+            <div>
+              <button class="visible btn" id="double-btn" onClick="double()">
+                Double
+              </button>
+              <button class="hidden btn" id="split-btn" onClick="split()">
+                split
+              </button>
+            </div>
+
             Wager: $<span id="wager_amount"></span>
           </div>
 
