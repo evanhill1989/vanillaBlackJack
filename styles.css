@@ -493,9 +493,7 @@ button:hover {
 #split-hand {
 }
 .split-hand {
-  position: absolute;
-  bottom: 0;
-  right: 0;
+  margin-left: auto;
   height: 100px;
   width: 100px;
   border: solid 2px orange;
@@ -503,6 +501,7 @@ button:hover {
 
 .split-card {
   background-color: white;
+  color: black;
 
   display: grid;
   grid-template-rows: 20px 1fr 20px;

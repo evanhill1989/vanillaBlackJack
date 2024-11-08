@@ -61,8 +61,7 @@ const deckStart = [
 ];
 
 const suits = ["♤", "♧", "♢", "♡"];
-//NEXT STEP -- Toggle focus hand is delayed by 1 step somehow. in middle of switching params.
-// Refactor to handle which userHand as prop for more generic functions...
+//NEXT STEP --  Score displays NaN when split and then stay on userHandOne.
 /* UI functions List:
   -- user blackjack banner
   -- dealer blackjack banner
@@ -243,7 +242,7 @@ function dealCard(hand, staticCardForTesting) {
     );
     userHandMainElement.appendChild(newCard);
   } else if (hand === userHandTwo) {
-    userHandTwo.cards.push(userHandTwo, staticCardForTesting || randomCard);
+    userHandTwo.cards.push(staticCardForTesting || randomCard);
   } else if (hand === dealerHand) {
     dealerHand.cards.push(staticCardForTesting || randomCard);
 
@@ -368,6 +367,8 @@ function split() {
   uiUpdateScore();
 
   uiToggleDisplay(splitBtn);
+  // console.log(userHandTwo, "userHandTwo after split");
+  // console.log(userHandOne, "userHandOne after split");
 }
 
 function uiSplitCards(hand) {
@@ -398,7 +399,7 @@ function switchFocusHandTo(hand) {
   // switches TO "hand"
   const newHandArray = []; /* */
   hand.cards.forEach((card) => {
-    const newCard = uiCreateCard("userHandOne", card);
+    const newCard = uiCreateCard(hand, card);
     newHandArray.push(newCard);
   });
 
@@ -506,16 +507,22 @@ function uiUpdateScore() {
 }
 
 async function hitUser() {
-  //!!!! Still Need to handle the case where user busts for instant loss
-  // ifffff isn't a split hand
-  // but I mean i could still just settle it as an instant loss
-  // because even if dealer ends up busting you still lose wager cause you busted first
+  // issue could be that we're passing in the whole hand instead of just a card object
+  // but why does that happen?
+  // dealCard(hand); works elsewwhere as exxpected
   const hand = userHandOne.isFocus ? userHandOne : userHandTwo;
-  const newCard = dealCard(hand);
-
+  console.log(hand, "<-----------------hand at START of hitUser()");
+  dealCard(hand, {
+    rank: "8",
+    value: 8,
+    suitEmoji: "♧",
+    suit: "clubs",
+  }); // next add in static card for testing
+  console.log(hand, "hand in hitUser()");
   updateScore();
   uiUpdateScore();
-
+  console.log(userHandTwo, "userHandTwo at end");
+  console.log(userHandOne, "userHandOne at end");
   if (hand.score > 21) {
     await settleHand(hand);
   }
@@ -538,13 +545,19 @@ async function stay() {
   } else if (wasSplit()) {
     splitStay();
   }
+
+  console.log(userHandTwo, "userHandTwo at end");
+  console.log(userHandOne, "userHandOne at end");
 }
 
 async function splitStay() {
   if (userHandOne.isFocus) {
+    console.log("first if inside splitStay()");
     toggleFocusHandToFrom(userHandTwo, userHandOne);
+    console.log("after toggleFocusHandToFrom(userHandTwo, userHandOne)");
   } else if (userHandTwo.isFocus && userHandOne.score > 21) {
     dealerAction();
+
     await settleHand(userHandTwo);
   } else if (userHandTwo.isFocus && !userHandOne.isSettled) {
     toggleFocusHandToFrom(userHandOne, userHandTwo);
@@ -646,6 +659,7 @@ async function settleHand(hand, blackjackMultiplier = 1) {
       uiTransitionToWager("scenario4");
     } else if (userHandOne.score > 21) {
       // Scenario 5 from ReadMe
+      // [todo] The UI needs to show this hand is dead instead of just switching the preview
       // await uiOutcome(outcome);
       console.log("Scenario 5 should produce this loge");
       await uiOutcome(outcome);
