@@ -18,7 +18,7 @@
       <span id="outcome-message"><h2>outcome</h2></span>
     </div>
     <main class="center">
-      <div id="initial-wager" class="wrapper visible">
+      <div id="initial-wager" class="wrapper">
         <form class="wager-form" onsubmit="dealNewHand(event)">
           <div class="wager-label-input">
             <label for="wager-input">Wager:</label>
@@ -48,29 +48,39 @@
         </div>
 
         <div class="in-hand-actions">
-          <button class="btn" id="hit-btn" onClick="hitUser('userHandOne')">
-            <!--This looks wrong, hitUser should have ambiguous params -->
-            Hit
-          </button>
-
-          <div id="wager">
-            <div>
-              <button class="visible btn" id="double-btn" onClick="double()">
-                Double
-              </button>
-              <button class="hidden btn" id="split-btn" onClick="split()">
-                split
-              </button>
-            </div>
-
-            Wager: $<span id="wager_amount"></span>
+          <div>
+            <button class="btn" id="hit-btn" onClick="hitUser('userHandOne')">
+              <!--This looks wrong, hitUser should have ambiguous params  -->
+              Hit
+            </button>
           </div>
 
-          <button class="btn" id="stay-btn" onClick="stay('userHandOne')">
-            Stay
-          </button>
+          <div class="double-split">
+            <button
+              disabled
+              class="visible btn"
+              id="double-btn"
+              onClick="double()"
+            >
+              Double
+            </button>
+            <button disabled class="btn" id="split-btn" onClick="split()">
+              split
+            </button>
+          </div>
+
+          <div>
+            <button class="btn" id="stay-btn" onClick="stay('userHandOne')">
+              Stay
+            </button>
+          </div>
         </div>
-        <div class="player-board dealer-board" id="user-board">
+
+        <div id="wager_display">
+          <p>Wager: $<span id="wager_amount"></span></p>
+        </div>
+
+        <div class="player-board user-board" id="user-board">
           <div class="hand-container">
             <div class="hand" id="user-hand"></div>
           </div>
@@ -78,6 +88,7 @@
           <div class="score dealer-score">
             <h4>Score</h4>
             <span id="user_score"></span>
+            <div class="visible split-hand" id="split-hand"></div>
           </div>
         </div>
         <!-- <div class="player-board user-board" id="user-board">
@@ -91,8 +102,6 @@
         </div> -->
 
         <h3 class="bankroll">Bankroll: $<span id="bankroll_tab"></span></h3>
-
-        <div class="visible split-hand" id="split-hand"></div>
       </div>
     </main>
 

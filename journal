@@ -1,0 +1,15 @@
+11/09/24 Working on game-board layout game-board_wrapper shouldn't overflow
+create a disable class for buttons Don't know how below is working, but it seems
+to be:
+<button class="btn" id="hit-btn" onClick="hitUser('userHandOne')">
+  <!--This looks wrong, hitUser should have ambiguous params  -->
+  Hit
+</button>
+
+--> Need to make dealing more realistic feeling. --> Outcome UI is weak I want
+celebratory effects for a win. Needs to be obviousl what happened. --> the flow
+of double is bad. Everything happens at once. Timing stuff might be difficult
+because I didn't consider that when implementing current structure. END summary
+- left off inside dealCard() trying to figure out how to get the currently being
+dealt card element in the right scope so i can transition position using CSS
+class change

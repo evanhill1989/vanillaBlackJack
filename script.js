@@ -98,6 +98,8 @@ const dealerScoreElement = document.getElementById("dealer_score");
 const actionInterface = document.getElementById("action-container");
 const wagerElement = document.getElementById("wager_amount");
 
+const wagerDisplay = document.getElementById("wager-display");
+
 const initialWager = document.getElementById("initial-wager");
 const gameBoard = document.getElementById("game-board");
 
@@ -152,7 +154,7 @@ function dealNewHand(event) {
   if (event) {
     event.preventDefault();
   }
-
+  resetDoubleSplitUI();
   uiUpdateScore();
   const form = event.target; // Get the form element
   const wagerInputValue = form.querySelector("#wager-input").value; // Get the input value
@@ -163,12 +165,13 @@ function dealNewHand(event) {
 
   uiToggleDisplay(initialWager);
   uiToggleDisplay(gameBoard);
-  dealCard(userHandOne, {
+  const firstCard = dealCard(userHandOne, {
     rank: "5",
     value: 5,
     suitEmoji: "♤",
     suit: "spades",
   });
+  console.log(firstCard);
   setTimeout(() => {
     dealCard(userHandOne, {
       rank: "5",
@@ -240,7 +243,10 @@ function dealCard(hand, staticCardForTesting) {
       userHandOne,
       staticCardForTesting || randomCard
     );
+
     userHandMainElement.appendChild(newCard);
+
+    // newCard.classList.replace("card-on-deck", "card-in-hand");
   } else if (hand === userHandTwo) {
     userHandTwo.cards.push(staticCardForTesting || randomCard);
   } else if (hand === dealerHand) {
@@ -272,6 +278,8 @@ function uiCreateCard(hand, card, isHoleCard) {
   const cardElement = document.createElement("div");
 
   const cardIndex = hand.cards.length - 1;
+
+  cardElement.classList.add("card-on-deck");
 
   if (isHoleCard) {
     cardElement.classList.add("card-back");
@@ -339,13 +347,13 @@ function uiAddCard(hand, card) {
 
 function checkIfCanSplit() {
   if (userHandOne.cards[0].rank === userHandOne.cards[1].rank) {
-    uiToggleDisplay(splitBtn);
+    toggleDisabled(splitBtn);
   }
 }
 
 function checkIfCanDouble(handScore) {
   if (handScore >= 9 && handScore <= 11) {
-    // uiToggleDisplay(doubleBtn);
+    toggleDisabled(doubleBtn);
   }
 }
 
@@ -354,11 +362,13 @@ function double(hand = userHandOne) {
   wagerElement.innerHTML = wagerAmount.toString();
   dealCard(hand);
 
-  uiToggleDisplay(splitBtn);
+  toggleDisabled(doubleBtn);
+  toggleDisabled(splitBtn);
   updateScore();
   uiUpdateScore();
   stay(hand); // "doubling down" in live blackjack implies stay logic by default
 }
+
 function split() {
   userHandTwo.cards.push(userHandOne.cards.splice(1, 1)[0]);
 
@@ -366,7 +376,8 @@ function split() {
   updateScore();
   uiUpdateScore();
 
-  uiToggleDisplay(splitBtn);
+  toggleDisabled(splitBtn);
+  toggleDisabled(doubleBtn);
   // console.log(userHandTwo, "userHandTwo after split");
   // console.log(userHandOne, "userHandOne after split");
 }
@@ -739,6 +750,8 @@ function resetHand(wagerAmount) {
   // This is gross and temporary
   // Really i need to dump const userHandOne
 
+  splitBtn.disabled = true;
+  doubleBtn.disabled = true;
   hands.dealerHand = { cards: [], isFocus: true, score: 0, isSettled: false };
   hands.userHandOne = { cards: [], isFocus: true, score: 0, isSettled: false };
   hands.userHandTwo = { cards: [], isFocus: false, score: 0, isSettled: false };
@@ -775,12 +788,25 @@ function resetHand(wagerAmount) {
   dealerHandElement.innerHTML = "";
 }
 
+function resetDoubleSplitUI() {
+  splitBtn.disabled = true;
+  doubleBtn.disabled = true;
+}
+
 // Utility functions
 function uiToggleDisplay(element) {
   if (element.classList.contains("hidden")) {
-    element.classList.replace("hidden", "visible");
+    element.classList.remove("hidden");
   } else {
-    element.classList.replace("visible", "hidden");
+    element.classList.add("hidden");
+  }
+}
+
+function toggleDisabled(element) {
+  if (element.disabled) {
+    element.disabled = false;
+  } else {
+    element.disabled = true;
   }
 }
 

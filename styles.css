@@ -38,6 +38,9 @@
 
   --ff-sans-normal: "Inter", sans-serif;
   --ff-sans-cond: "Inter Tight", sans-serif;
+
+  /* utilities */
+  --outline-red: 3px solid red;
 }
 
 /* ------------------- */
@@ -130,7 +133,7 @@ select {
 }
 
 .center {
-  align-items: center;
+  /* align-items: center; */
 }
 
 .sr-only {
@@ -266,6 +269,15 @@ select {
     hsl(var(--clr-green-dark) / 0.1) -2px 12px 8px 1px;
 }
 
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn:disabled:hover {
+  outline: none;
+}
+
 .btn:focus {
   background: conic-gradient(
     hsl(var(--clr-green-bright)),
@@ -377,16 +389,21 @@ button:hover {
 
 .game-board__wrapper {
   padding-inline: 2em;
-  justify-items: center;
+  align-items: center;
   max-width: 1200px;
   display: grid;
-  grid-template-rows: 1fr, 1fr, 1fr;
+  outline: 3px solid greenyellow;
+
   grid-template-columns: 1fr;
+  grid-template-rows: 1fr min-content min-content 1fr;
   grid-template-areas:
     "dealer-board"
     "actions"
+    "wager"
     "user-board";
-  gap: 1em;
+
+  border-top: red 3px solid;
+  border-bottom: greenyellow 3px solid;
 }
 
 #game-board {
@@ -400,6 +417,47 @@ button:hover {
   min-height: 150px;
 }
 
+.dealer-board {
+  /* align-self: self-end; */
+  outline: 3px solid red;
+  grid-area: dealer-board;
+}
+
+.user-board {
+  /* align-self: self-start; */
+  padding: 0;
+  /* outline: 3px solid red; */
+  position: relative;
+  grid-area: user-board;
+}
+
+.double-split {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  outline: 3px solid red;
+}
+
+#wager_display {
+  grid-area: wager;
+  justify-self: center;
+  outline: 3px solid red;
+  margin-top: 2em;
+}
+
+.in-hand-actions {
+  align-items: center;
+  grid-area: actions;
+  width: 100%;
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 1fr;
+  grid-template-areas: "hit doubleSplit stay";
+  /* Not really using/needsing the above properties for areas */
+  gap: 2em;
+}
+
 .hand-container {
   grid-area: hand;
   display: flex;
@@ -410,10 +468,8 @@ button:hover {
 
 .hand {
   position: relative;
-  justify-self: end;
-  color: blue;
 
-  outline: 1px solid white;
+  color: blue;
 }
 
 .card-container {
@@ -448,15 +504,20 @@ button:hover {
   border-radius: 10px;
 }
 
+.card-on-deck {
+  transform: translateY(-200vh);
+  transition: transform 2s ease-in-out;
+}
+
+.card-in-hand {
+  transform: translateY(0);
+}
+
 .score {
   grid-area: score;
   align-self: center;
   justify-self: end;
 }
-
-/* .dealer-score {
-  grid-area: dealer-score;
-} */
 
 .user-score {
 }
@@ -465,17 +526,6 @@ button:hover {
 }
 
 #dealer-board {
-}
-
-.in-hand-actions {
-  grid-area: actions;
-  width: 100%;
-  display: grid;
-
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: 1fr;
-  grid-template-areas: "hit-btn wager stay-btn";
-  gap: 2em;
 }
 
 #hit-btn {
@@ -493,7 +543,9 @@ button:hover {
 #split-hand {
 }
 .split-hand {
-  margin-left: auto;
+  /* position: absolute;
+  top: 0;
+  right: 0; */
   height: 100px;
   width: 100px;
   border: solid 2px orange;
@@ -602,5 +654,4 @@ button:hover {
   display: none; /* Hidden by default */
 }
 .visible {
-  display: grid;
 }
